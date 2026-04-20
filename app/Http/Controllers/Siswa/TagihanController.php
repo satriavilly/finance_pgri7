@@ -31,16 +31,14 @@ class TagihanController extends Controller
     public function show(int $tagihanId): View
     {
         $tagihan = TagihanSiswa::with(['jenisTagihan', 'siswa', 'cicilan', 'pembayaran.verifiedBy'])->findOrFail($tagihanId);
-        $this->authorize('view', $tagihan);
-
         $detail = $this->cicilanService->getTagihanDenganCicilan($tagihan);
+
         return view('siswa.tagihan.show', compact('tagihan', 'detail'));
     }
 
     public function formUpload(int $tagihanId): View
     {
         $tagihan = TagihanSiswa::with(['jenisTagihan', 'cicilan'])->findOrFail($tagihanId);
-        $this->authorize('uploadBukti', $tagihan);
 
         return view('siswa.tagihan.upload', compact('tagihan'));
     }
@@ -48,7 +46,6 @@ class TagihanController extends Controller
     public function uploadBukti(UploadBuktiBayarRequest $request, int $tagihanId): RedirectResponse
     {
         $tagihan = TagihanSiswa::findOrFail($tagihanId);
-        $this->authorize('uploadBukti', $tagihan);
 
         $this->pembayaranService->uploadBuktiBayar(
             $tagihan,

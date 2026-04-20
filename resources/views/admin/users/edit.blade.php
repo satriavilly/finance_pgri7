@@ -5,7 +5,14 @@
 @section('content')
 <div class="max-w-xl mx-auto">
     <div class="bg-white rounded-xl shadow-sm p-6">
-        <form method="POST" action="{{ route('admin.users.update', $user) }}">
+        @php
+            $kelasUser = $user->hasRole('wali_kelas')
+                ? \App\Models\Kelas::where('wali_kelas_id', $user->id)->first()?->id
+                : ($user->siswa?->kelas_id ?? null);
+        @endphp
+
+        <form method="POST" action="{{ route('admin.users.update', $user) }}"
+              x-data="{ role: '{{ old('role', $user->getRoleNames()->first()) }}' }">
             @csrf
             @method('PUT')
             <div class="space-y-4">
@@ -14,6 +21,7 @@
                     <input type="text" name="name" value="{{ old('name', $user->name) }}" required
                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Username <span class="text-red-500">*</span></label>
@@ -26,25 +34,47 @@
                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                 </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
                     <input type="email" name="email" value="{{ old('email', $user->email) }}" required
                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password baru (kosongkan jika tidak diubah)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password baru <span class="text-gray-400 font-normal">(kosongkan jika tidak diubah)</span></label>
                     <input type="password" name="password"
                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
-                    <select name="role" required
+                    <select name="role" x-model="role" required
                             class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                        @foreach($roles as $role)
-                        <option value="{{ $role->name }}" {{ $user->hasRole($role->name) ? 'selected' : '' }}>{{ $role->name }}</option>
+                        @foreach($roles as $r)
+                        <option value="{{ $r->name }}" {{ $user->hasRole($r->name) ? 'selected' : '' }}>
+                            {{ ucfirst(str_replace('_', ' ', $r->name)) }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
+
+                {{-- Kelas --}}
+                <div x-show="role === 'wali_kelas' || role === 'siswa'" x-cloak>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <span x-text="role === 'wali_kelas' ? 'Tugaskan sebagai Wali Kelas' : 'Kelas Siswa'"></span>
+                    </label>
+                    <select name="kelas_id"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Pilih kelas...</option>
+                        @foreach($kelasList as $kelas)
+                        <option value="{{ $kelas->id }}" {{ old('kelas_id', $kelasUser) == $kelas->id ? 'selected' : '' }}>
+                            Kelas {{ $kelas->nama }} — TA {{ $kelas->tahunAjaran->nama }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="flex items-center gap-2">
                     <input type="checkbox" name="is_active" value="1" id="is_active"
                            {{ $user->is_active ? 'checked' : '' }}
@@ -52,6 +82,7 @@
                     <label for="is_active" class="text-sm text-gray-700">Akun aktif</label>
                 </div>
             </div>
+
             <div class="flex gap-3 mt-6">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm">
                     Perbarui

@@ -18,8 +18,6 @@ class StoreJenisTagihanRequest extends FormRequest
             'deskripsi' => ['nullable', 'string', 'max:1000'],
             'kategori' => ['required', 'in:kas_kelas,buku_lks,kegiatan,seragam,lainnya'],
             'total_nominal' => ['required', 'numeric', 'min:1000'],
-            'is_cicilan' => ['boolean'],
-            'jumlah_cicilan' => ['required_if:is_cicilan,true', 'integer', 'min:2', 'max:12'],
             'due_date' => ['nullable', 'date', 'after:today'],
         ];
     }

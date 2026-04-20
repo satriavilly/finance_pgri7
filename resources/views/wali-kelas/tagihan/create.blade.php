@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-2xl mx-auto">
     <div class="bg-white rounded-xl shadow-sm p-6">
-        <form method="POST" action="{{ route('wali-kelas.tagihan.store') }}" x-data="{ isCicilan: false }">
+        <form method="POST" action="{{ route('wali-kelas.tagihan.store') }}">
             @csrf
 
             <div class="space-y-4">
@@ -27,25 +27,27 @@
                     </select>
                 </div>
 
-                <div>
+                <div x-data="{
+                    display: '{{ old('total_nominal') ? number_format(old('total_nominal'), 0, ',', '.') : '' }}',
+                    raw: '{{ old('total_nominal') ?? '' }}',
+                    format(val) {
+                        let num = val.replace(/\D/g, '');
+                        this.raw = num;
+                        this.display = num ? parseInt(num).toLocaleString('id-ID') : '';
+                    }
+                }">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Total Nominal (Rp) <span class="text-red-500">*</span></label>
-                    <input type="number" name="total_nominal" value="{{ old('total_nominal') }}" required min="1000" step="500"
-                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                           placeholder="Contoh: 50000">
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">Rp</span>
+                        <input type="text" inputmode="numeric"
+                               x-model="display"
+                               @input="format($event.target.value)"
+                               required
+                               class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                               placeholder="Contoh: 50.000">
+                    </div>
+                    <input type="hidden" name="total_nominal" :value="raw">
                     @error('total_nominal')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <input type="checkbox" name="is_cicilan" id="is_cicilan" value="1"
-                           x-model="isCicilan" {{ old('is_cicilan') ? 'checked' : '' }}
-                           class="rounded border-gray-300 text-blue-600">
-                    <label for="is_cicilan" class="text-sm text-gray-700">Pembayaran cicilan?</label>
-                </div>
-
-                <div x-show="isCicilan" x-cloak>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Cicilan</label>
-                    <input type="number" name="jumlah_cicilan" value="{{ old('jumlah_cicilan', 2) }}" min="2" max="12"
-                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
                 </div>
 
                 <div>

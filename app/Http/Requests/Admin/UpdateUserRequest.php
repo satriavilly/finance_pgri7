@@ -22,6 +22,7 @@ class UpdateUserRequest extends FormRequest
             'no_hp' => ['nullable', 'string', 'max:20'],
             'password' => ['nullable', Password::min(8)],
             'role' => ['required', 'exists:roles,name'],
+            'kelas_id' => ['nullable', 'exists:kelas,id'],
             'is_active' => ['boolean'],
         ];
     }

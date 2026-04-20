@@ -27,12 +27,15 @@ Route::middleware(['auth'])->group(function () {
     // Wali Kelas
     Route::middleware('role:wali_kelas')->prefix('wali-kelas')->name('wali-kelas.')->group(function () {
         Route::resource('tagihan', WaliTagihanController::class)->only(['index', 'create', 'store']);
+        Route::get('siswa', [WaliPembayaranController::class, 'daftarSiswa'])->name('siswa.index');
         Route::get('siswa/{siswa}/tagihan', [WaliPembayaranController::class, 'siswaDaftarTagihan'])->name('siswa.tagihan');
         Route::get('pembayaran/verifikasi', [WaliPembayaranController::class, 'verifikasiBuktiBayar'])->name('pembayaran.verifikasi');
         Route::get('tagihan-siswa/{tagihan}/bayar', [WaliPembayaranController::class, 'formBayarTunai'])->name('pembayaran.form-tunai');
         Route::post('tagihan-siswa/{tagihan}/bayar', [WaliPembayaranController::class, 'bayarTunai'])->name('pembayaran.bayar-tunai');
+        Route::post('tagihan-siswa/{tagihan}/upload-bukti', [WaliPembayaranController::class, 'uploadBuktiWaliKelas'])->name('pembayaran.upload-bukti');
         Route::post('pembayaran/{pembayaran}/approve', [WaliPembayaranController::class, 'approve'])->name('pembayaran.approve');
         Route::post('pembayaran/{pembayaran}/reject', [WaliPembayaranController::class, 'reject'])->name('pembayaran.reject');
+        Route::post('pembayaran/{pembayaran}/void', [WaliPembayaranController::class, 'void'])->name('pembayaran.void');
     });
 
     // Siswa

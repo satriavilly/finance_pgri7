@@ -15,6 +15,7 @@ class StorePembayaranTunaiRequest extends FormRequest
     {
         return [
             'nominal' => ['required', 'numeric', 'min:1000'],
+            'tanggal_bayar' => ['required', 'date', 'before_or_equal:today'],
             'cicilan_id' => ['nullable', 'exists:cicilan,id'],
             'catatan' => ['nullable', 'string', 'max:500'],
         ];
@@ -25,6 +26,8 @@ class StorePembayaranTunaiRequest extends FormRequest
         return [
             'nominal.required' => 'Nominal pembayaran wajib diisi.',
             'nominal.min' => 'Nominal minimal Rp 1.000.',
+            'tanggal_bayar.required' => 'Tanggal bayar wajib diisi.',
+            'tanggal_bayar.before_or_equal' => 'Tanggal bayar tidak boleh lebih dari hari ini.',
         ];
     }
 }

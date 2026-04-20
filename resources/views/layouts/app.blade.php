@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'SiKas') — SMP PGRI 7 Bandung</title>
+    <link rel="icon" type="image/png" href="{{ asset('storage/pgri7.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -22,9 +23,7 @@
            :class="sidebarOpen ? 'w-64' : 'w-16'">
         {{-- Logo --}}
         <div class="flex items-center gap-3 p-4 border-b border-blue-700">
-            <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-blue-900 font-bold text-xs">SK</span>
-            </div>
+            <img src="{{ asset('storage/pgri7.png') }}" alt="Logo" class="w-8 h-8 object-contain flex-shrink-0">
             <div x-show="sidebarOpen" x-cloak>
                 <p class="font-bold text-sm leading-tight">SiKas</p>
                 <p class="text-blue-300 text-xs">SMP PGRI 7 Bandung</p>

@@ -17,8 +17,6 @@ class TagihanController extends Controller
 
     public function index(): View
     {
-        $this->authorize('viewAny', JenisTagihan::class);
-
         $kelas = $this->getKelasWaliKelas();
         $jenisTagihan = JenisTagihan::where('kelas_id', $kelas->id)
             ->with('creator')
@@ -30,15 +28,12 @@ class TagihanController extends Controller
 
     public function create(): View
     {
-        $this->authorize('create', JenisTagihan::class);
         $kelas = $this->getKelasWaliKelas();
         return view('wali-kelas.tagihan.create', compact('kelas'));
     }
 
     public function store(StoreJenisTagihanRequest $request): RedirectResponse
     {
-        $this->authorize('create', JenisTagihan::class);
-
         $kelas = $this->getKelasWaliKelas();
         $jenisTagihan = JenisTagihan::create([
             ...$request->validated(),

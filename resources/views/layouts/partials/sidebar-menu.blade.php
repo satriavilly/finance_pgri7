@@ -1,10 +1,12 @@
 @php $role = auth()->user()->getRoleNames()->first(); @endphp
 
 @php
-function sidebarLink($url, $icon, $label, $active = false) {
-    $baseClass = 'flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2';
-    $activeClass = $active ? ' bg-blue-700' : '';
-    return $baseClass . $activeClass;
+if (!function_exists('sidebarLink')) {
+    function sidebarLink($url, $icon, $label, $active = false) {
+        $baseClass = 'flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2';
+        $activeClass = $active ? ' bg-blue-700' : '';
+        return $baseClass . $activeClass;
+    }
 }
 @endphp
 
@@ -17,6 +19,12 @@ function sidebarLink($url, $icon, $label, $active = false) {
 
 @role('wali_kelas')
 <div class="px-4 py-2 text-xs text-blue-400 uppercase tracking-wide mt-3" x-show="sidebarOpen" x-cloak>Kelas Saya</div>
+
+<a href="{{ route('wali-kelas.siswa.index') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('wali-kelas.siswa.*') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-money-bill-wave w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Input Pembayaran</span>
+</a>
 
 <a href="{{ route('wali-kelas.tagihan.index') }}"
    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('wali-kelas.tagihan.*') ? 'bg-blue-700' : '' }}">

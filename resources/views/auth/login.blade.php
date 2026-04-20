@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — SiKas SMP PGRI 7 Bandung</title>
+    <link rel="icon" type="image/png" href="{{ asset('storage/pgri7.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-blue-900 to-blue-700 min-h-screen flex items-center justify-center p-4">
@@ -11,8 +12,8 @@
 <div class="w-full max-w-md">
     {{-- Logo --}}
     <div class="text-center mb-8">
-        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3">
-            <span class="text-blue-900 font-bold text-2xl">SK</span>
+        <div class="w-36 h-36 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg p-3">
+            <img src="{{ asset('storage/pgri7.png') }}" alt="Logo SMP PGRI 7" class="w-full h-full object-contain">
         </div>
         <h1 class="text-white text-2xl font-bold">SiKas</h1>
         <p class="text-blue-200 text-sm">Sistem Informasi Keuangan Sekolah</p>

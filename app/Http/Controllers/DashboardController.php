@@ -37,7 +37,11 @@ class DashboardController extends Controller
         }
 
         if ($user->hasRole('siswa')) {
-            $siswa = $user->siswa()->with('kelas', 'tagihanSiswa.jenisTagihan')->first();
+            $siswa = $user->siswa()->with([
+                'kelas',
+                'tagihanSiswa' => fn($q) => $q->where('status', '!=', 'void')
+                    ->with(['jenisTagihan', 'pembayaran' => fn($q) => $q->where('is_void', false)->latest()]),
+            ])->first();
             return view('dashboard.siswa', compact('siswa'));
         }
 

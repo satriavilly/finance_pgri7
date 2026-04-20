@@ -19,6 +19,8 @@ class PembayaranService
         return DB::transaction(function () use ($tagihan, $data, $userId) {
             $cicilanId = $data['cicilan_id'] ?? null;
 
+            $tanggal = $data['tanggal_bayar'] ?? now()->toDateString();
+
             $pembayaran = Pembayaran::create([
                 'tagihan_siswa_id' => $tagihan->id,
                 'cicilan_id' => $cicilanId,
@@ -26,9 +28,10 @@ class PembayaranService
                 'metode' => 'tunai',
                 'status_verifikasi' => 'approved',
                 'verified_by' => $userId,
-                'verified_at' => now(),
+                'verified_at' => $tanggal,
                 'catatan' => $data['catatan'] ?? null,
                 'created_by' => $userId,
+                'created_at' => $tanggal,
             ]);
 
             $this->updateStatusTagihan($tagihan, $data['nominal'], $cicilanId);
@@ -38,22 +41,36 @@ class PembayaranService
         });
     }
 
-    public function uploadBuktiBayar(TagihanSiswa $tagihan, array $data, UploadedFile $file, int $userId): Pembayaran
+    public function uploadBuktiBayar(TagihanSiswa $tagihan, array $data, UploadedFile $file, int $userId, bool $autoApprove = false): Pembayaran
     {
-        return DB::transaction(function () use ($tagihan, $data, $file, $userId) {
+        return DB::transaction(function () use ($tagihan, $data, $file, $userId, $autoApprove) {
             $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('bukti_bayar', $filename, config('filesystems.disks.private') ? 'private' : 'local');
 
-            return Pembayaran::create([
-                'tagihan_siswa_id' => $tagihan->id,
-                'cicilan_id' => $data['cicilan_id'] ?? null,
-                'nominal' => $data['nominal'],
-                'metode' => $data['metode'],
-                'bukti_bayar_path' => $path,
-                'status_verifikasi' => 'pending',
-                'catatan' => $data['catatan'] ?? null,
-                'created_by' => $userId,
+            $cicilanId = $data['cicilan_id'] ?? null;
+
+            $tanggal = $data['tanggal_bayar'] ?? now()->toDateString();
+
+            $pembayaran = Pembayaran::create([
+                'tagihan_siswa_id'  => $tagihan->id,
+                'cicilan_id'        => $cicilanId,
+                'nominal'           => $data['nominal'],
+                'metode'            => $data['metode'],
+                'bukti_bayar_path'  => $path,
+                'status_verifikasi' => $autoApprove ? 'approved' : 'pending',
+                'verified_by'       => $autoApprove ? $userId : null,
+                'verified_at'       => $autoApprove ? $tanggal : null,
+                'catatan'           => $data['catatan'] ?? null,
+                'created_by'        => $userId,
+                'created_at'        => $tanggal,
             ]);
+
+            if ($autoApprove) {
+                $this->updateStatusTagihan($tagihan, $data['nominal'], $cicilanId);
+                $this->updateKasKelas($tagihan, $data['nominal']);
+            }
+
+            return $pembayaran;
         });
     }
 

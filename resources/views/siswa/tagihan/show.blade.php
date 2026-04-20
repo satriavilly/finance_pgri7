@@ -83,6 +83,14 @@
                         {{ \App\Models\Pembayaran::statusVerifikasiLabel()[$bayar->status_verifikasi] }}
                     </span>
                 </div>
+                @if($bayar->bukti_bayar_path)
+                <div class="mt-2">
+                    <a href="{{ route('bukti.show', $bayar->id) }}" target="_blank"
+                       class="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                        <i class="fas fa-image"></i> Lihat Bukti Bayar
+                    </a>
+                </div>
+                @endif
                 @if($bayar->catatan_tolak)
                 <p class="text-xs text-red-600 mt-1">Alasan ditolak: {{ $bayar->catatan_tolak }}</p>
                 @endif
