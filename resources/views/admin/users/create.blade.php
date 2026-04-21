@@ -55,6 +55,23 @@
                     @error('role')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
 
+                {{-- Anak (ortu) --}}
+                <div x-show="role === 'ortu'" x-cloak>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Siswa (Anak) <span class="text-gray-400 font-normal">(opsional)</span>
+                    </label>
+                    <select name="anak_siswa_id"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">— Pilih siswa —</option>
+                        @foreach($siswaList as $siswa)
+                        <option value="{{ $siswa->id }}" {{ old('anak_siswa_id') == $siswa->id ? 'selected' : '' }}>
+                            {{ $siswa->nama }} — NIS {{ $siswa->nis }}
+                            @if($siswa->kelas) (Kelas {{ $siswa->kelas->nama }}) @endif
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 {{-- Kelas — muncul untuk wali_kelas dan siswa --}}
                 <div x-show="role === 'wali_kelas' || role === 'siswa'" x-cloak>
                     <label class="block text-sm font-medium text-gray-700 mb-1">

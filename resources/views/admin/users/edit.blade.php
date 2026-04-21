@@ -11,6 +11,7 @@
                 : ($user->siswa?->kelas_id ?? null);
         @endphp
 
+        @php $anakSiswaId = $user->anak?->id ?? null; @endphp
         <form method="POST" action="{{ route('admin.users.update', $user) }}"
               x-data="{ role: '{{ old('role', $user->getRoleNames()->first()) }}' }">
             @csrf
@@ -57,6 +58,29 @@
                         </option>
                         @endforeach
                     </select>
+                </div>
+
+                {{-- Anak (ortu) --}}
+                <div x-show="role === 'ortu'" x-cloak>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Siswa (Anak) <span class="text-gray-400 font-normal">(opsional)</span>
+                    </label>
+                    <select name="anak_siswa_id"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">— Pilih siswa —</option>
+                        @foreach($siswaList as $siswa)
+                        <option value="{{ $siswa->id }}"
+                            {{ old('anak_siswa_id', $anakSiswaId) == $siswa->id ? 'selected' : '' }}>
+                            {{ $siswa->nama }} — NIS {{ $siswa->nis }}
+                            @if($siswa->kelas) (Kelas {{ $siswa->kelas->nama }}) @endif
+                        </option>
+                        @endforeach
+                    </select>
+                    @if($anakSiswaId)
+                    <p class="text-xs text-gray-400 mt-1">
+                        <i class="fas fa-link mr-1"></i>Saat ini terhubung ke: <strong>{{ $user->anak->nama }}</strong>
+                    </p>
+                    @endif
                 </div>
 
                 {{-- Kelas --}}

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\Kelas;
+use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,7 @@ class UserController extends Controller
     {
         $search = $request->input('search');
 
-        $users = User::with('roles', 'kelasWali', 'siswa.kelas')
+        $users = User::with('roles', 'kelasWali', 'siswa.kelas', 'anak')
             ->when($search, fn($q) => $q->where(fn($q) =>
                 $q->where('name', 'ilike', "%{$search}%")
                   ->orWhere('username', 'ilike', "%{$search}%")
@@ -38,20 +39,29 @@ class UserController extends Controller
             ->whereHas('tahunAjaran', fn($q) => $q->where('is_aktif', true))
             ->orderBy('tingkat')->orderBy('nama')
             ->get();
-        return view('admin.users.create', compact('roles', 'kelasList'));
+        $siswaList = Siswa::with('kelas')->orderBy('nama')->get();
+        return view('admin.users.create', compact('roles', 'kelasList', 'siswaList'));
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $kelasId = $data['kelas_id'] ?? null;
-        unset($data['kelas_id']);
+        $kelasId    = $data['kelas_id'] ?? null;
+        $anakSiswaId = $data['anak_siswa_id'] ?? null;
+        unset($data['kelas_id'], $data['anak_siswa_id']);
 
         $user = User::create($data);
         $user->assignRole($request->role);
 
         if ($kelasId && $request->role === 'wali_kelas') {
             Kelas::where('id', $kelasId)->update(['wali_kelas_id' => $user->id]);
+        }
+
+        if ($request->role === 'ortu') {
+            Siswa::where('ortu_user_id', $user->id)->update(['ortu_user_id' => null]);
+            if ($anakSiswaId) {
+                Siswa::where('id', $anakSiswaId)->update(['ortu_user_id' => $user->id]);
+            }
         }
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dibuat.');
@@ -64,14 +74,16 @@ class UserController extends Controller
             ->whereHas('tahunAjaran', fn($q) => $q->where('is_aktif', true))
             ->orderBy('tingkat')->orderBy('nama')
             ->get();
-        return view('admin.users.edit', compact('user', 'roles', 'kelasList'));
+        $siswaList = Siswa::with('kelas')->orderBy('nama')->get();
+        return view('admin.users.edit', compact('user', 'roles', 'kelasList', 'siswaList'));
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $data = $request->validated();
-        $kelasId = $data['kelas_id'] ?? null;
-        unset($data['kelas_id']);
+        $kelasId     = $data['kelas_id'] ?? null;
+        $anakSiswaId = $data['anak_siswa_id'] ?? null;
+        unset($data['kelas_id'], $data['anak_siswa_id']);
 
         if (empty($data['password'])) {
             unset($data['password']);
@@ -84,6 +96,13 @@ class UserController extends Controller
             Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
             if ($kelasId) {
                 Kelas::where('id', $kelasId)->update(['wali_kelas_id' => $user->id]);
+            }
+        }
+
+        if ($request->role === 'ortu') {
+            Siswa::where('ortu_user_id', $user->id)->update(['ortu_user_id' => null]);
+            if ($anakSiswaId) {
+                Siswa::where('id', $anakSiswaId)->update(['ortu_user_id' => $user->id]);
             }
         }
 

@@ -32,7 +32,7 @@ class DashboardController extends Controller
         }
 
         if ($user->hasRole('kepsek')) {
-            $data = $tahunAjaran ? $this->laporanService->dashboardBendahara($tahunAjaran->id) : [];
+            $data = $tahunAjaran ? $this->laporanService->dashboardKepsek($tahunAjaran->id) : [];
             return view('dashboard.kepsek', compact('tahunAjaran', 'data'));
         }
 

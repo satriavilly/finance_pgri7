@@ -36,9 +36,24 @@
         </nav>
 
         {{-- User Info --}}
-        <div class="p-4 border-t border-blue-700" x-show="sidebarOpen" x-cloak>
-            <p class="text-sm font-medium truncate">{{ auth()->user()->name }}</p>
-            <p class="text-blue-300 text-xs">{{ auth()->user()->getRoleNames()->first() }}</p>
+        <div class="border-t border-blue-700">
+            <a href="{{ route('settings') }}"
+               class="flex items-center gap-3 p-4 hover:bg-blue-800 transition-colors {{ request()->routeIs('settings') ? 'bg-blue-800' : '' }}">
+                {{-- Avatar --}}
+                <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-blue-600
+                            {{ auth()->user()->foto_profil ? '' : 'bg-blue-600 flex items-center justify-center' }}">
+                    @if(auth()->user()->foto_profil)
+                        <img src="{{ auth()->user()->fotoProfilUrl() }}" class="w-full h-full object-cover">
+                    @else
+                        <span class="text-white text-sm font-bold">{{ auth()->user()->inisial() }}</span>
+                    @endif
+                </div>
+                <div x-show="sidebarOpen" x-cloak class="min-w-0">
+                    <p class="text-sm font-medium text-white truncate">{{ auth()->user()->name }}</p>
+                    <p class="text-blue-300 text-xs truncate">{{ ucfirst(str_replace('_', ' ', auth()->user()->getRoleNames()->first() ?? '')) }}</p>
+                </div>
+                <i class="fas fa-cog text-blue-400 text-xs ml-auto flex-shrink-0" x-show="sidebarOpen" x-cloak></i>
+            </a>
         </div>
     </aside>
 
@@ -53,11 +68,23 @@
                 <h1 class="text-gray-700 font-semibold text-lg">@yield('page-title', 'Dashboard')</h1>
             </div>
             <div class="flex items-center gap-3">
-                <span class="text-sm text-gray-500">{{ auth()->user()->name }}</span>
+                <a href="{{ route('settings') }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-200
+                                {{ auth()->user()->foto_profil ? '' : 'bg-blue-600 flex items-center justify-center' }}">
+                        @if(auth()->user()->foto_profil)
+                            <img src="{{ auth()->user()->fotoProfilUrl() }}" class="w-full h-full object-cover">
+                        @else
+                            <span class="text-white text-xs font-bold">{{ auth()->user()->inisial() }}</span>
+                        @endif
+                    </div>
+                    <span class="text-sm text-gray-600 hidden sm:block">{{ auth()->user()->name }}</span>
+                </a>
+                <div class="w-px h-5 bg-gray-200"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="text-sm text-red-500 hover:text-red-700">
-                        <i class="fas fa-sign-out-alt"></i> Keluar
+                    <button type="submit" class="text-sm text-red-500 hover:text-red-700 flex items-center gap-1">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="hidden sm:block">Keluar</span>
                     </button>
                 </form>
             </div>

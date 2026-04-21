@@ -45,7 +45,19 @@ if (!function_exists('sidebarLink')) {
 <a href="{{ route('dashboard') }}"
    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('dashboard') ? 'bg-blue-700' : '' }}">
     <i class="fas fa-chart-pie w-5 flex-shrink-0"></i>
-    <span x-show="sidebarOpen" x-cloak>Rekap Pembayaran</span>
+    <span x-show="sidebarOpen" x-cloak>Dashboard</span>
+</a>
+
+<a href="{{ route('bendahara.laporan.transaksi') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('bendahara.laporan.transaksi') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-receipt w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Laporan Transaksi</span>
+</a>
+
+<a href="{{ route('bendahara.laporan.tagihan') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('bendahara.laporan.tagihan') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-file-invoice-dollar w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Rekap Tagihan</span>
 </a>
 @endrole
 
@@ -58,6 +70,14 @@ if (!function_exists('sidebarLink')) {
     <span x-show="sidebarOpen" x-cloak>Tagihan Saya</span>
 </a>
 @endrole
+
+{{-- Settings (semua role) --}}
+<div class="px-4 py-2 text-xs text-blue-400 uppercase tracking-wide mt-3" x-show="sidebarOpen" x-cloak>Akun</div>
+<a href="{{ route('settings') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('settings') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-cog w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Pengaturan Akun</span>
+</a>
 
 @role('admin')
 <div class="px-4 py-2 text-xs text-blue-400 uppercase tracking-wide mt-3" x-show="sidebarOpen" x-cloak>Administrasi</div>

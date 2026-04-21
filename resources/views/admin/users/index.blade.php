@@ -84,6 +84,7 @@ $roleLabel = [
                     } elseif ($role === 'siswa') {
                         $kelas = $user->siswa?->kelas?->nama;
                     }
+                    $anakNama = $role === 'ortu' ? $user->anak?->nama : null;
                 @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-medium text-gray-800">{{ $user->name }}</td>
@@ -99,7 +100,13 @@ $roleLabel = [
                         @endif
                     </td>
                     <td class="px-4 py-3 text-gray-600 text-xs">
-                        {{ $kelas ? 'Kelas ' . $kelas : '—' }}
+                        @if($kelas)
+                            Kelas {{ $kelas }}
+                        @elseif($anakNama)
+                            <span class="text-teal-600"><i class="fas fa-child mr-1"></i>{{ $anakNama }}</span>
+                        @else
+                            —
+                        @endif
                     </td>
                     <td class="px-4 py-3">
                         <span class="{{ $user->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }} text-xs px-2 py-0.5 rounded-full">

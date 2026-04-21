@@ -20,7 +20,25 @@ class User extends Authenticatable
         'no_hp',
         'password',
         'is_active',
+        'foto_profil',
     ];
+
+    public function fotoProfilUrl(): string
+    {
+        return $this->foto_profil
+            ? asset('storage/' . $this->foto_profil)
+            : '';
+    }
+
+    public function inisial(): string
+    {
+        $parts = explode(' ', trim($this->name));
+        $init  = strtoupper(substr($parts[0], 0, 1));
+        if (count($parts) > 1) {
+            $init .= strtoupper(substr(end($parts), 0, 1));
+        }
+        return $init;
+    }
 
     protected $hidden = [
         'password',
