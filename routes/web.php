@@ -7,6 +7,7 @@ use App\Http\Controllers\WaliKelas\TagihanController as WaliTagihanController;
 use App\Http\Controllers\WaliKelas\PembayaranController as WaliPembayaranController;
 use App\Http\Controllers\Siswa\TagihanController as SiswaTagihanController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Bendahara\SiswaController as BendaharaSiswaController;
 use Illuminate\Support\Facades\Route;
 
 // Auth
@@ -44,6 +45,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('tagihan/{tagihan}', [SiswaTagihanController::class, 'show'])->name('tagihan.show');
         Route::get('tagihan/{tagihan}/upload', [SiswaTagihanController::class, 'formUpload'])->name('tagihan.upload');
         Route::post('tagihan/{tagihan}/upload', [SiswaTagihanController::class, 'uploadBukti'])->name('tagihan.upload.store');
+    });
+
+    // Bendahara
+    Route::middleware('role:bendahara')->prefix('bendahara')->name('bendahara.')->group(function () {
+        Route::get('kelas/{kelas}', [BendaharaSiswaController::class, 'siswaKelas'])->name('kelas.siswa');
     });
 
     // Admin

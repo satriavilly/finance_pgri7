@@ -30,15 +30,13 @@ class LaporanService
 
     public function dashboardBendahara(int $tahunAjaranId): array
     {
-        $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaranId)->pluck('id');
+        $kelasIds = Kelas::where('tahun_ajaran_id', $tahunAjaranId)->pluck('id');
 
-        $totalTagihan = TagihanSiswa::whereHas('jenisTagihan', fn($q) => $q->whereIn('kelas_id', $kelas))
-            ->where('status', '!=', 'void')
-            ->sum('nominal_total');
+        $totalTagihan = TagihanSiswa::whereHas('jenisTagihan', fn($q) => $q->whereIn('kelas_id', $kelasIds))
+            ->where('status', '!=', 'void')->sum('nominal_total');
 
-        $totalTerbayar = TagihanSiswa::whereHas('jenisTagihan', fn($q) => $q->whereIn('kelas_id', $kelas))
-            ->where('status', '!=', 'void')
-            ->sum('nominal_terbayar');
+        $totalTerbayar = TagihanSiswa::whereHas('jenisTagihan', fn($q) => $q->whereIn('kelas_id', $kelasIds))
+            ->where('status', '!=', 'void')->sum('nominal_terbayar');
 
         $totalTunggakan = $totalTagihan - $totalTerbayar;
 
@@ -49,10 +47,33 @@ class LaporanService
             ->sum('nominal');
 
         $menungguVerifikasi = Pembayaran::where('status_verifikasi', 'pending')
-            ->where('is_void', false)
-            ->count();
+            ->where('is_void', false)->count();
 
-        return compact('totalTagihan', 'totalTerbayar', 'totalTunggakan', 'pemasukanBulanIni', 'menungguVerifikasi');
+        $perKelas = Kelas::where('tahun_ajaran_id', $tahunAjaranId)
+            ->withCount('siswa')
+            ->orderBy('tingkat')->orderBy('nama')
+            ->get()
+            ->map(function ($kelas) {
+                $total     = TagihanSiswa::whereHas('siswa', fn($q) => $q->where('kelas_id', $kelas->id))
+                    ->where('status', '!=', 'void')->sum('nominal_total');
+                $terbayar  = TagihanSiswa::whereHas('siswa', fn($q) => $q->where('kelas_id', $kelas->id))
+                    ->where('status', '!=', 'void')->sum('nominal_terbayar');
+                $lunasCount = \App\Models\Siswa::where('kelas_id', $kelas->id)
+                    ->whereDoesntHave('tagihanSiswa', fn($q) => $q->whereIn('status', ['belum_bayar', 'cicilan']))
+                    ->count();
+                $pct = $total > 0 ? min(100, round($terbayar / $total * 100)) : 0;
+                return [
+                    'kelas'         => $kelas,
+                    'total'         => $total,
+                    'terbayar'      => $terbayar,
+                    'tunggakan'     => $total - $terbayar,
+                    'pct'           => $pct,
+                    'lunas_count'   => $lunasCount,
+                    'tunggakan_count' => $kelas->siswa_count - $lunasCount,
+                ];
+            });
+
+        return compact('totalTagihan', 'totalTerbayar', 'totalTunggakan', 'pemasukanBulanIni', 'menungguVerifikasi', 'perKelas');
     }
 
     public function dashboardWaliKelas(int $kelasId): array

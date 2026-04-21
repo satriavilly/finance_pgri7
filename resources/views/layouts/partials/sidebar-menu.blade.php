@@ -39,6 +39,16 @@ if (!function_exists('sidebarLink')) {
 </a>
 @endrole
 
+@role('bendahara')
+<div class="px-4 py-2 text-xs text-blue-400 uppercase tracking-wide mt-3" x-show="sidebarOpen" x-cloak>Keuangan</div>
+
+<a href="{{ route('dashboard') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('dashboard') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-chart-pie w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Rekap Pembayaran</span>
+</a>
+@endrole
+
 @role('siswa')
 <div class="px-4 py-2 text-xs text-blue-400 uppercase tracking-wide mt-3" x-show="sidebarOpen" x-cloak>Keuangan Saya</div>
 

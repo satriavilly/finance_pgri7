@@ -24,13 +24,42 @@ $roleLabel = [
 @section('content')
 <div class="space-y-4">
     <div class="flex justify-between items-center">
-        <p class="text-sm text-gray-500">Total: {{ $users->total() }} pengguna</p>
+        <p class="text-sm text-gray-500">
+            Total: {{ $users->total() }} pengguna
+            @if($search)
+                <span class="ml-1 text-blue-600">· hasil pencarian "<strong>{{ $search }}</strong>"</span>
+            @endif
+        </p>
         <a href="{{ route('admin.users.create') }}"
            class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah User
         </a>
     </div>
+
+    {{-- Search --}}
+    <form method="GET" action="{{ route('admin.users.index') }}">
+        <div class="bg-white rounded-xl shadow-sm px-4 py-3">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" name="search" value="{{ $search }}"
+                       placeholder="Cari nama, username, atau email..."
+                       class="w-full pl-9 pr-10 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                       autocomplete="off">
+                @if($search)
+                <a href="{{ route('admin.users.index') }}"
+                   class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-sm"></i>
+                </a>
+                @else
+                <button type="submit"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500">
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+                @endif
+            </div>
+        </div>
+    </form>
 
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <table class="min-w-full text-sm">

@@ -14,10 +14,21 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index(): View
+    public function index(\Illuminate\Http\Request $request): View
     {
-        $users = User::with('roles', 'kelasWali', 'siswa.kelas')->latest()->paginate(20);
-        return view('admin.users.index', compact('users'));
+        $search = $request->input('search');
+
+        $users = User::with('roles', 'kelasWali', 'siswa.kelas')
+            ->when($search, fn($q) => $q->where(fn($q) =>
+                $q->where('name', 'ilike', "%{$search}%")
+                  ->orWhere('username', 'ilike', "%{$search}%")
+                  ->orWhere('email', 'ilike', "%{$search}%")
+            ))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.users.index', compact('users', 'search'));
     }
 
     public function create(): View
