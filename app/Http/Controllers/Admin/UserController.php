@@ -46,15 +46,25 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $kelasId    = $data['kelas_id'] ?? null;
+        $kelasId     = $data['kelas_id'] ?? null;
         $anakSiswaId = $data['anak_siswa_id'] ?? null;
-        unset($data['kelas_id'], $data['anak_siswa_id']);
+        $nis         = $data['nis'] ?? null;
+        unset($data['kelas_id'], $data['anak_siswa_id'], $data['nis']);
 
         $user = User::create($data);
         $user->assignRole($request->role);
 
         if ($kelasId && $request->role === 'wali_kelas') {
             Kelas::where('id', $kelasId)->update(['wali_kelas_id' => $user->id]);
+        }
+
+        if ($request->role === 'siswa' && $nis) {
+            Siswa::create([
+                'user_id'  => $user->id,
+                'nis'      => $nis,
+                'nama'     => $user->name,
+                'kelas_id' => $kelasId ?: null,
+            ]);
         }
 
         if ($request->role === 'ortu') {
@@ -83,7 +93,8 @@ class UserController extends Controller
         $data = $request->validated();
         $kelasId     = $data['kelas_id'] ?? null;
         $anakSiswaId = $data['anak_siswa_id'] ?? null;
-        unset($data['kelas_id'], $data['anak_siswa_id']);
+        $nis         = $data['nis'] ?? null;
+        unset($data['kelas_id'], $data['anak_siswa_id'], $data['nis']);
 
         if (empty($data['password'])) {
             unset($data['password']);
@@ -96,6 +107,20 @@ class UserController extends Controller
             Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
             if ($kelasId) {
                 Kelas::where('id', $kelasId)->update(['wali_kelas_id' => $user->id]);
+            }
+        }
+
+        if ($request->role === 'siswa') {
+            $siswa = Siswa::where('user_id', $user->id)->first();
+            if ($siswa) {
+                if ($kelasId) $siswa->update(['kelas_id' => $kelasId]);
+            } elseif ($nis) {
+                Siswa::create([
+                    'user_id'  => $user->id,
+                    'nis'      => $nis,
+                    'nama'     => $user->name,
+                    'kelas_id' => $kelasId ?: null,
+                ]);
             }
         }
 

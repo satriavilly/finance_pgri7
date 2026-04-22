@@ -21,6 +21,7 @@ class StoreUserRequest extends FormRequest
             'no_hp' => ['nullable', 'string', 'max:20'],
             'password' => ['required', Password::min(8)],
             'role' => ['required', 'exists:roles,name'],
+            'nis'           => ['required_if:role,siswa', 'nullable', 'string', 'max:20', 'unique:siswa,nis'],
             'kelas_id'      => ['nullable', 'exists:kelas,id'],
             'anak_siswa_id' => ['nullable', 'exists:siswa,id'],
             'is_active' => ['boolean'],

@@ -97,11 +97,16 @@ $statusBadge = [
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                         </div>
+                        @if($s->user?->foto_profil)
+                        <img src="{{ $s->user->fotoProfilUrl() }}" alt="{{ $s->nama }}"
+                             class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                        @else
                         <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ $lunas ? 'bg-green-100' : 'bg-red-100' }}">
                             <span class="text-xs font-bold {{ $lunas ? 'text-green-700' : 'text-red-700' }}">
                                 {{ strtoupper(substr($s->nama, 0, 1)) }}
                             </span>
                         </div>
+                        @endif
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-gray-800">{{ $s->nama }}</p>
                             <p class="text-xs text-gray-400">NIS {{ $s->nis }}</p>

@@ -59,6 +59,12 @@ if (!function_exists('sidebarLink')) {
     <i class="fas fa-file-invoice-dollar w-5 flex-shrink-0"></i>
     <span x-show="sidebarOpen" x-cloak>Rekap Tagihan</span>
 </a>
+
+<a href="{{ route('bendahara.spp.index') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('bendahara.spp.*') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-calendar-alt w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Kelola SPP</span>
+</a>
 @endrole
 
 @role('siswa')

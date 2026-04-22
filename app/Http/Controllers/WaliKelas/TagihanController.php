@@ -47,6 +47,30 @@ class TagihanController extends Controller
             ->with('success', 'Tagihan berhasil dibuat dan sudah didistribusikan ke semua siswa.');
     }
 
+    public function distribusiUlang(): RedirectResponse
+    {
+        $kelas = $this->getKelasWaliKelas();
+
+        $jenisTagihanList = JenisTagihan::where('kelas_id', $kelas->id)
+            ->where('is_aktif', true)
+            ->whereNull('deleted_at')
+            ->get();
+
+        $jumlahTagihanBaru = 0;
+        foreach ($jenisTagihanList as $jenisTagihan) {
+            $sebelum = \App\Models\TagihanSiswa::where('jenis_tagihan_id', $jenisTagihan->id)->count();
+            $this->cicilanService->buatTagihanUntukKelas($jenisTagihan);
+            $sesudah = \App\Models\TagihanSiswa::where('jenis_tagihan_id', $jenisTagihan->id)->count();
+            $jumlahTagihanBaru += ($sesudah - $sebelum);
+        }
+
+        $pesan = $jumlahTagihanBaru > 0
+            ? "{$jumlahTagihanBaru} tagihan baru berhasil didistribusikan ke siswa yang belum memiliki tagihan."
+            : 'Semua siswa sudah memiliki tagihan. Tidak ada tagihan baru yang perlu dibuat.';
+
+        return redirect()->route('wali-kelas.tagihan.index')->with('success', $pesan);
+    }
+
     private function getKelasWaliKelas(): Kelas
     {
         $tahunAjaran = TahunAjaran::aktif();

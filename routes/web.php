@@ -9,6 +9,7 @@ use App\Http\Controllers\Siswa\TagihanController as SiswaTagihanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Bendahara\SiswaController as BendaharaSiswaController;
 use App\Http\Controllers\Bendahara\LaporanController as BendaharaLaporanController;
+use App\Http\Controllers\Bendahara\SppController as BendaharaSppController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
     // Wali Kelas
     Route::middleware('role:wali_kelas')->prefix('wali-kelas')->name('wali-kelas.')->group(function () {
         Route::resource('tagihan', WaliTagihanController::class)->only(['index', 'create', 'store']);
+        Route::post('tagihan/distribusi-ulang', [WaliTagihanController::class, 'distribusiUlang'])->name('tagihan.distribusi-ulang');
         Route::get('siswa', [WaliPembayaranController::class, 'daftarSiswa'])->name('siswa.index');
         Route::get('siswa/{siswa}/tagihan', [WaliPembayaranController::class, 'siswaDaftarTagihan'])->name('siswa.tagihan');
         Route::get('pembayaran/verifikasi', [WaliPembayaranController::class, 'verifikasiBuktiBayar'])->name('pembayaran.verifikasi');
@@ -58,6 +60,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('kelas/{kelas}', [BendaharaSiswaController::class, 'siswaKelas'])->name('kelas.siswa');
         Route::get('laporan/transaksi', [BendaharaLaporanController::class, 'transaksi'])->name('laporan.transaksi');
         Route::get('laporan/tagihan',   [BendaharaLaporanController::class, 'tagihan'])->name('laporan.tagihan');
+        Route::get('spp',                               [BendaharaSppController::class, 'index'])->name('spp.index');
+        Route::get('spp/buat',                          [BendaharaSppController::class, 'create'])->name('spp.create');
+        Route::post('spp',                              [BendaharaSppController::class, 'store'])->name('spp.store');
+        Route::post('spp/bayar/{tagihanSiswa}',         [BendaharaSppController::class, 'bayar'])->name('spp.bayar');
+        Route::post('spp/{periode}/distribusi-ulang',   [BendaharaSppController::class, 'distribusiUlang'])->name('spp.distribusi-ulang');
+        Route::get('spp/{periode}',                     [BendaharaSppController::class, 'show'])->name('spp.show');
     });
 
     // Admin

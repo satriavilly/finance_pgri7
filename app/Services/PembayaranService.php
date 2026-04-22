@@ -25,7 +25,7 @@ class PembayaranService
                 'tagihan_siswa_id' => $tagihan->id,
                 'cicilan_id' => $cicilanId,
                 'nominal' => $data['nominal'],
-                'metode' => 'tunai',
+                'metode' => $data['metode'] ?? 'tunai',
                 'status_verifikasi' => 'approved',
                 'verified_by' => $userId,
                 'verified_at' => $tanggal,

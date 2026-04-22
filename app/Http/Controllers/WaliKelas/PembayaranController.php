@@ -28,6 +28,7 @@ class PembayaranController extends Controller
 
         $siswa = $kelas
             ? \App\Models\Siswa::with([
+                'user',
                 'tagihanSiswa' => fn($q) => $q->where('status', '!=', 'void')
                     ->with(['jenisTagihan', 'pembayaran' => fn($q) => $q->where('is_void', false)->where('status_verifikasi', 'approved')->latest()->limit(5)]),
               ])

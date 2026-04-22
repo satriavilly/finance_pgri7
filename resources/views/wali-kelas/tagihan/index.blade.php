@@ -6,11 +6,28 @@
 <div class="space-y-4">
     <div class="flex justify-between items-center">
         <p class="text-sm text-gray-500">Tahun Ajaran: {{ $kelas->tahunAjaran->nama }}</p>
-        <a href="{{ route('wali-kelas.tagihan.create') }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Buat Tagihan Baru
-        </a>
+        <div class="flex gap-2">
+            @if(!$jenisTagihan->isEmpty())
+            <form method="POST" action="{{ route('wali-kelas.tagihan.distribusi-ulang') }}"
+                  x-data
+                  x-on:submit.prevent="
+                    if(confirm('Distribusikan semua tagihan aktif ke siswa yang belum memilikinya?\n\nSiswa lama yang sudah punya tagihan tidak akan terpengaruh.'))
+                        $el.submit()
+                  ">
+                @csrf
+                <button type="submit"
+                        class="bg-amber-500 hover:bg-amber-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-sync-alt"></i>
+                    Distribusi ke Siswa Baru
+                </button>
+            </form>
+            @endif
+            <a href="{{ route('wali-kelas.tagihan.create') }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Buat Tagihan Baru
+            </a>
+        </div>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
