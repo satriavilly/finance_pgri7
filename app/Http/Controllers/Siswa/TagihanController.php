@@ -3,27 +3,27 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Siswa\UploadBuktiBayarRequest;
 use App\Models\TagihanSiswa;
 use App\Services\CicilanService;
-use App\Services\PembayaranService;
-use Illuminate\Http\RedirectResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class TagihanController extends Controller
 {
-    public function __construct(
-        private PembayaranService $pembayaranService,
-        private CicilanService $cicilanService,
-    ) {}
+    public function __construct(private CicilanService $cicilanService) {}
 
     public function index(): View
     {
         $siswa = auth()->user()->siswa()->with('kelas')->firstOrFail();
-        $tagihan = TagihanSiswa::with(['jenisTagihan', 'pembayaran', 'cicilan'])
+        $tagihan = TagihanSiswa::with([
+                'jenisTagihan.kelas.tahunAjaran',
+                'pembayaran' => fn($q) => $q->where('is_void', false)->latest(),
+            ])
             ->where('siswa_id', $siswa->id)
+            ->where('status', '!=', 'void')
             ->latest()
-            ->paginate(15);
+            ->get();
 
         return view('siswa.tagihan.index', compact('siswa', 'tagihan'));
     }
@@ -36,25 +36,20 @@ class TagihanController extends Controller
         return view('siswa.tagihan.show', compact('tagihan', 'detail'));
     }
 
-    public function formUpload(int $tagihanId): View
+    public function downloadPdf(): Response
     {
-        $tagihan = TagihanSiswa::with(['jenisTagihan', 'cicilan'])->findOrFail($tagihanId);
+        $siswa = auth()->user()->siswa()->with([
+            'kelas.tahunAjaran',
+            'tagihanSiswa' => fn($q) => $q->where('status', '!=', 'void')
+                ->with([
+                    'jenisTagihan.kelas.tahunAjaran',
+                    'pembayaran' => fn($q) => $q->where('is_void', false)->latest(),
+                ]),
+        ])->firstOrFail();
 
-        return view('siswa.tagihan.upload', compact('tagihan'));
-    }
+        $pdf = Pdf::loadView('siswa.tagihan.pdf', compact('siswa'))
+            ->setPaper('a4', 'portrait');
 
-    public function uploadBukti(UploadBuktiBayarRequest $request, int $tagihanId): RedirectResponse
-    {
-        $tagihan = TagihanSiswa::findOrFail($tagihanId);
-
-        $this->pembayaranService->uploadBuktiBayar(
-            $tagihan,
-            $request->validated(),
-            $request->file('bukti_bayar'),
-            auth()->id()
-        );
-
-        return redirect()->route('siswa.tagihan.show', $tagihanId)
-            ->with('success', 'Bukti bayar berhasil diupload. Menunggu verifikasi wali kelas.');
+        return $pdf->download('laporan-tagihan-' . $siswa->nis . '.pdf');
     }
 }

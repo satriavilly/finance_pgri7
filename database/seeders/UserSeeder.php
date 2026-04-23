@@ -14,6 +14,7 @@ class UserSeeder extends Seeder
             ['name' => 'Administrator', 'username' => 'admin', 'email' => 'admin@smppgri7.sch.id', 'role' => 'admin'],
             ['name' => 'Kepala Sekolah', 'username' => 'kepsek', 'email' => 'kepsek@smppgri7.sch.id', 'role' => 'kepsek'],
             ['name' => 'Bendahara Sekolah', 'username' => 'bendahara', 'email' => 'bendahara@smppgri7.sch.id', 'role' => 'bendahara'],
+            ['name' => 'Admin Tata Usaha', 'username' => 'admin_tu', 'email' => 'admintu@smppgri7.sch.id', 'role' => 'admin_tu'],
             ['name' => 'Wali Kelas 7A', 'username' => 'wali_kelas', 'email' => 'walikelas7a@smppgri7.sch.id', 'role' => 'wali_kelas'],
             ['name' => 'Budi Santoso', 'username' => 'siswa', 'email' => 'siswa@smppgri7.sch.id', 'role' => 'siswa'],
             ['name' => 'Orang Tua Budi', 'username' => 'ortu', 'email' => 'ortu@smppgri7.sch.id', 'role' => 'ortu'],

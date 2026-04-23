@@ -33,14 +33,9 @@
     <div class="bg-white rounded-xl shadow-sm p-5">
         <h2 class="font-semibold text-gray-700 mb-4">Aksi Cepat — Kelas {{ $kelas->nama }}</h2>
         <div class="flex flex-wrap gap-3">
-            <a href="{{ route('wali-kelas.tagihan.create') }}"
+            <a href="{{ route('wali-kelas.siswa.index') }}"
                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Buat Tagihan Baru
-            </a>
-            <a href="{{ route('wali-kelas.tagihan.index') }}"
-               class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-lg">
-                Daftar Tagihan
+                <i class="fas fa-money-bill-wave"></i> Input Pembayaran
             </a>
             <a href="{{ route('wali-kelas.pembayaran.verifikasi') }}"
                class="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-sm px-4 py-2 rounded-lg">

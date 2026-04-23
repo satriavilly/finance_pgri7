@@ -25,6 +25,14 @@ class DashboardController extends Controller
             return view('dashboard.bendahara', compact('tahunAjaran', 'data'));
         }
 
+        if ($user->hasRole('admin_tu')) {
+            $totalTagihan = \App\Models\JenisTagihan::whereHas('kelas.tahunAjaran', fn($q) => $q->where('is_aktif', true))
+                ->whereNull('deleted_at')
+                ->count();
+            $totalKelas = \App\Models\Kelas::whereHas('tahunAjaran', fn($q) => $q->where('is_aktif', true))->count();
+            return view('dashboard.admin_tu', compact('tahunAjaran', 'totalTagihan', 'totalKelas'));
+        }
+
         if ($user->hasRole('wali_kelas')) {
             $kelas = $user->kelasWali()->where('tahun_ajaran_id', $tahunAjaran?->id)->first();
             $data = $kelas ? $this->laporanService->dashboardWaliKelas($kelas->id) : [];
@@ -40,9 +48,12 @@ class DashboardController extends Controller
             $siswa = $user->siswa()->with([
                 'kelas',
                 'tagihanSiswa' => fn($q) => $q->where('status', '!=', 'void')
-                    ->with(['jenisTagihan', 'pembayaran' => fn($q) => $q->where('is_void', false)->latest()]),
+                    ->with([
+                        'jenisTagihan.kelas.tahunAjaran',
+                        'pembayaran' => fn($q) => $q->where('is_void', false)->latest(),
+                    ]),
             ])->first();
-            return view('dashboard.siswa', compact('siswa'));
+            return view('dashboard.siswa', compact('siswa', 'tahunAjaran'));
         }
 
         if ($user->hasRole('ortu')) {

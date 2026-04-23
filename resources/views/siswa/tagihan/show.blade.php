@@ -32,14 +32,6 @@
             </div>
         </div>
 
-        @if($tagihan->status !== 'lunas' && $tagihan->status !== 'void')
-        <div class="mt-4">
-            <a href="{{ route('siswa.tagihan.upload', $tagihan->id) }}"
-               class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg inline-block">
-                Upload Bukti Bayar
-            </a>
-        </div>
-        @endif
     </div>
 
     @if($detail['cicilan']->isNotEmpty())

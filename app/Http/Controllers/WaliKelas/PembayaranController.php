@@ -30,7 +30,7 @@ class PembayaranController extends Controller
             ? \App\Models\Siswa::with([
                 'user',
                 'tagihanSiswa' => fn($q) => $q->where('status', '!=', 'void')
-                    ->with(['jenisTagihan', 'pembayaran' => fn($q) => $q->where('is_void', false)->where('status_verifikasi', 'approved')->latest()->limit(5)]),
+                    ->with('jenisTagihan'),
               ])
                 ->where('kelas_id', $kelas->id)
                 ->orderBy('nama')
@@ -42,7 +42,14 @@ class PembayaranController extends Controller
 
     public function siswaDaftarTagihan(int $siswaId): View
     {
-        $siswa = Siswa::with(['kelas', 'tagihanSiswa.jenisTagihan', 'tagihanSiswa.cicilan'])->findOrFail($siswaId);
+        $siswa = Siswa::with([
+            'kelas',
+            'tagihanSiswa' => fn($q) => $q->where('status', '!=', 'void')->with([
+                'jenisTagihan',
+                'cicilan',
+                'pembayaran' => fn($q) => $q->where('is_void', false)->latest(),
+            ]),
+        ])->findOrFail($siswaId);
 
         return view('wali-kelas.pembayaran.daftar-tagihan', compact('siswa'));
     }

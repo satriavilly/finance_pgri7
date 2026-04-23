@@ -10,13 +10,19 @@
         <a href="{{ route('bendahara.spp.index') }}" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
             <i class="fas fa-arrow-left text-xs"></i> Kembali ke daftar SPP
         </a>
-        <form method="POST" action="{{ route('bendahara.spp.distribusi-ulang', $periode) }}"
-              x-data x-on:submit.prevent="if(confirm('Distribusikan SPP ini ke siswa baru yang belum memilikinya?')) $el.submit()">
-            @csrf
-            <button type="submit" class="text-sm bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-                <i class="fas fa-sync-alt text-xs"></i> Distribusi ke Siswa Baru
-            </button>
-        </form>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('bendahara.spp.edit', $periode) }}"
+               class="text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                <i class="fas fa-pen text-xs"></i> Edit SPP
+            </a>
+            <form method="POST" action="{{ route('bendahara.spp.distribusi-ulang', $periode) }}"
+                  x-data x-on:submit.prevent="if(confirm('Distribusikan SPP ini ke siswa baru yang belum memilikinya?')) $el.submit()">
+                @csrf
+                <button type="submit" class="text-sm bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                    <i class="fas fa-sync-alt text-xs"></i> Distribusi ke Siswa Baru
+                </button>
+            </form>
+        </div>
     </div>
 
     @if(session('success'))
@@ -54,19 +60,29 @@
     @php $kelas = $row['kelas']; $tagihan = $row['tagihan']; $nominalKelas = $row['nominal']; @endphp
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         {{-- Kelas header --}}
-        <div class="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <span class="font-semibold text-gray-700">Kelas {{ $kelas->nama }}</span>
-                <span class="text-xs text-gray-400">{{ $tagihan->count() }} siswa</span>
+        <div class="px-4 py-3 bg-gray-50 border-b">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="font-semibold text-gray-700">Kelas {{ $kelas->nama }}</span>
+                    <span class="text-xs text-gray-400 siswa-count" data-kelas="{{ $kelas->id }}">{{ $tagihan->count() }} siswa</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs">
+                    <span class="text-green-600 font-medium">{{ $row['lunas'] }} lunas</span>
+                    <span class="text-red-500 font-medium">{{ $row['belum'] }} belum</span>
+                    <span class="text-gray-500">Rp {{ number_format($row['terkumpul'], 0, ',', '.') }}</span>
+                    <span class="text-xs text-blue-600 font-medium border border-blue-200 bg-blue-50 px-2 py-0.5 rounded-full">
+                        Tarif Rp {{ number_format($nominalKelas, 0, ',', '.') }}
+                    </span>
+                </div>
             </div>
-            <div class="flex items-center gap-3 text-xs">
-                <span class="text-green-600 font-medium">{{ $row['lunas'] }} lunas</span>
-                <span class="text-red-500 font-medium">{{ $row['belum'] }} belum</span>
-                <span class="text-gray-500">Rp {{ number_format($row['terkumpul'], 0, ',', '.') }}</span>
-                <span class="text-xs text-blue-600 font-medium border border-blue-200 bg-blue-50 px-2 py-0.5 rounded-full">
-                    Tarif Rp {{ number_format($nominalKelas, 0, ',', '.') }}
-                </span>
+            @if($tagihan->isNotEmpty())
+            <div class="mt-2">
+                <input type="text"
+                       placeholder="Cari nama siswa atau NIS..."
+                       oninput="filterSiswa(this, {{ $kelas->id }}, {{ $tagihan->count() }})"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
             </div>
+            @endif
         </div>
 
         @if($tagihan->isEmpty())
@@ -75,7 +91,10 @@
         <div class="divide-y divide-gray-50">
             @foreach($tagihan as $t)
             @php $lunas = $t->status === 'lunas'; @endphp
-            <div x-data="{ open: false }" class="px-4 py-3">
+            <div x-data="{ open: false }" class="px-4 py-3 siswa-row"
+                 data-kelas="{{ $kelas->id }}"
+                 data-nama="{{ mb_strtolower($t->siswa->nama) }}"
+                 data-nis="{{ $t->siswa->nis }}">
 
                 {{-- Row siswa --}}
                 <div class="flex items-center gap-3">
@@ -208,4 +227,23 @@
     @endforeach
 
 </div>
+@push('scripts')
+<script>
+function filterSiswa(input, kelasId, total) {
+    const q = input.value.toLowerCase().trim();
+    const rows = document.querySelectorAll(`.siswa-row[data-kelas="${kelasId}"]`);
+    let visible = 0;
+    rows.forEach(function(row) {
+        const match = !q || row.dataset.nama.includes(q) || row.dataset.nis.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    const counter = document.querySelector(`.siswa-count[data-kelas="${kelasId}"]`);
+    if (counter) {
+        counter.textContent = q ? visible + ' dari ' + total + ' siswa' : total + ' siswa';
+    }
+}
+</script>
+@endpush
+
 @endsection

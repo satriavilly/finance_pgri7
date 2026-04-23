@@ -5,6 +5,7 @@ use App\Http\Controllers\BuktiBayarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WaliKelas\TagihanController as WaliTagihanController;
 use App\Http\Controllers\WaliKelas\PembayaranController as WaliPembayaranController;
+use App\Http\Controllers\AdminTu\TagihanController as AdminTuTagihanController;
 use App\Http\Controllers\Siswa\TagihanController as SiswaTagihanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Bendahara\SiswaController as BendaharaSiswaController;
@@ -32,10 +33,19 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/settings/foto', [SettingsController::class, 'hapusFoto'])->name('settings.foto.hapus');
     Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
 
+    // Admin TU
+    Route::middleware('role:admin_tu')->prefix('admin-tu')->name('admin-tu.')->group(function () {
+        Route::get('tagihan', [AdminTuTagihanController::class, 'index'])->name('tagihan.index');
+        Route::get('tagihan/buat', [AdminTuTagihanController::class, 'create'])->name('tagihan.create');
+        Route::post('tagihan', [AdminTuTagihanController::class, 'store'])->name('tagihan.store');
+        Route::get('tagihan/{tagihan}/edit', [AdminTuTagihanController::class, 'edit'])->name('tagihan.edit');
+        Route::put('tagihan/{tagihan}', [AdminTuTagihanController::class, 'update'])->name('tagihan.update');
+        Route::post('tagihan/{tagihan}/distribusi-ulang', [AdminTuTagihanController::class, 'distribusiUlang'])->name('tagihan.distribusi-ulang');
+        Route::delete('tagihan/{tagihan}', [AdminTuTagihanController::class, 'destroy'])->name('tagihan.destroy');
+    });
+
     // Wali Kelas
     Route::middleware('role:wali_kelas')->prefix('wali-kelas')->name('wali-kelas.')->group(function () {
-        Route::resource('tagihan', WaliTagihanController::class)->only(['index', 'create', 'store']);
-        Route::post('tagihan/distribusi-ulang', [WaliTagihanController::class, 'distribusiUlang'])->name('tagihan.distribusi-ulang');
         Route::get('siswa', [WaliPembayaranController::class, 'daftarSiswa'])->name('siswa.index');
         Route::get('siswa/{siswa}/tagihan', [WaliPembayaranController::class, 'siswaDaftarTagihan'])->name('siswa.tagihan');
         Route::get('pembayaran/verifikasi', [WaliPembayaranController::class, 'verifikasiBuktiBayar'])->name('pembayaran.verifikasi');
@@ -50,9 +60,8 @@ Route::middleware(['auth'])->group(function () {
     // Siswa
     Route::middleware('role:siswa')->prefix('siswa')->name('siswa.')->group(function () {
         Route::get('tagihan', [SiswaTagihanController::class, 'index'])->name('tagihan.index');
+        Route::get('tagihan/pdf', [SiswaTagihanController::class, 'downloadPdf'])->name('tagihan.pdf');
         Route::get('tagihan/{tagihan}', [SiswaTagihanController::class, 'show'])->name('tagihan.show');
-        Route::get('tagihan/{tagihan}/upload', [SiswaTagihanController::class, 'formUpload'])->name('tagihan.upload');
-        Route::post('tagihan/{tagihan}/upload', [SiswaTagihanController::class, 'uploadBukti'])->name('tagihan.upload.store');
     });
 
     // Bendahara
@@ -65,6 +74,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('spp',                              [BendaharaSppController::class, 'store'])->name('spp.store');
         Route::post('spp/bayar/{tagihanSiswa}',         [BendaharaSppController::class, 'bayar'])->name('spp.bayar');
         Route::post('spp/{periode}/distribusi-ulang',   [BendaharaSppController::class, 'distribusiUlang'])->name('spp.distribusi-ulang');
+        Route::get('spp/{periode}/edit',                [BendaharaSppController::class, 'edit'])->name('spp.edit');
+        Route::put('spp/{periode}',                     [BendaharaSppController::class, 'update'])->name('spp.update');
         Route::get('spp/{periode}',                     [BendaharaSppController::class, 'show'])->name('spp.show');
     });
 

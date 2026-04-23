@@ -18,23 +18,12 @@
             @csrf
             <div class="space-y-5">
 
-                {{-- Periode --}}
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Bulan <span class="text-red-500">*</span></label>
-                        <select name="bulan" required
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                            @foreach($bulanOptions as $num => $nama)
-                            <option value="{{ $num }}" {{ old('bulan', now()->month) == $num ? 'selected' : '' }}>{{ $nama }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tahun <span class="text-red-500">*</span></label>
-                        <input type="number" name="tahun" value="{{ old('tahun', now()->year) }}" required
-                               min="2020" max="2099"
-                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
+                {{-- Tahun --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Ajaran <span class="text-red-500">*</span></label>
+                    <input type="number" name="tahun" value="{{ old('tahun', now()->year) }}" required
+                           min="2020" max="2099"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
 
                 {{-- Jatuh Tempo --}}
@@ -122,7 +111,7 @@
                 {{-- Info --}}
                 <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-700">
                     <i class="fas fa-info-circle mr-2"></i>
-                    SPP akan didistribusikan ke semua siswa di kelas yang dipilih. Tarif berbeda per angkatan sesuai ketentuan sekolah. Kelas yang sudah punya SPP periode ini akan dilewati.
+                    SPP akan dibuat untuk 12 bulan (Januari–Desember) sekaligus. Tarif berbeda per angkatan sesuai ketentuan sekolah. Bulan yang sudah punya SPP di kelas tersebut akan dilewati.
                 </div>
             </div>
 
