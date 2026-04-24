@@ -25,7 +25,8 @@ class TagihanController extends Controller
             : TahunAjaran::aktif() ?? $allTahunAjaran->first();
 
         $jenisTagihanList = $tahunAjaran
-            ? JenisTagihan::with(['kelas', 'creator'])
+            ? JenisTagihan::with(['kelas' => fn($q) => $q->withCount('siswa'), 'creator'])
+                ->withCount('tagihanSiswa')
                 ->whereHas('kelas', fn($q) => $q->where('tahun_ajaran_id', $tahunAjaran->id))
                 ->whereNull('deleted_at')
                 ->latest()
@@ -121,6 +122,33 @@ class TagihanController extends Controller
             ->with('success', "Tagihan \"{$tagihan->nama}\" berhasil diperbarui.");
     }
 
+    public function distribusiSemua(Request $request): RedirectResponse
+    {
+        $tahunAjaran = $request->filled('ta')
+            ? TahunAjaran::find($request->integer('ta'))
+            : TahunAjaran::aktif();
+
+        abort_if(!$tahunAjaran, 404);
+
+        $list = JenisTagihan::whereHas('kelas', fn($q) => $q->where('tahun_ajaran_id', $tahunAjaran->id))
+            ->whereNull('deleted_at')
+            ->get();
+
+        $jumlahBaru = 0;
+        foreach ($list as $jt) {
+            $before = \App\Models\TagihanSiswa::where('jenis_tagihan_id', $jt->id)->count();
+            $this->cicilanService->buatTagihanUntukKelas($jt);
+            $jumlahBaru += \App\Models\TagihanSiswa::where('jenis_tagihan_id', $jt->id)->count() - $before;
+        }
+
+        $pesan = $jumlahBaru > 0
+            ? "{$jumlahBaru} tagihan baru berhasil didistribusikan ke siswa yang belum memilikinya."
+            : 'Semua siswa sudah memiliki semua tagihan di tahun ajaran ini.';
+
+        return redirect()->route('admin-tu.tagihan.index', ['ta' => $tahunAjaran->id])
+            ->with('success', $pesan);
+    }
+
     public function distribusiUlang(JenisTagihan $tagihan): RedirectResponse
     {
         $sebelum = \App\Models\TagihanSiswa::where('jenis_tagihan_id', $tagihan->id)->count();
@@ -133,6 +161,26 @@ class TagihanController extends Controller
             : 'Semua siswa sudah memiliki tagihan ini.';
 
         return redirect()->route('admin-tu.tagihan.index')->with('success', $pesan);
+    }
+
+    public function penerima(JenisTagihan $tagihan): View
+    {
+        $tagihan->load('kelas');
+
+        $sudahIds = \App\Models\TagihanSiswa::where('jenis_tagihan_id', $tagihan->id)
+            ->pluck('siswa_id');
+
+        $belum = \App\Models\Siswa::where('kelas_id', $tagihan->kelas_id)
+            ->whereNotIn('id', $sudahIds)
+            ->orderBy('nama')
+            ->get();
+
+        $sudah = \App\Models\Siswa::where('kelas_id', $tagihan->kelas_id)
+            ->whereIn('id', $sudahIds)
+            ->orderBy('nama')
+            ->get();
+
+        return view('admin-tu.tagihan.penerima', compact('tagihan', 'belum', 'sudah'));
     }
 
     public function destroy(JenisTagihan $tagihan): RedirectResponse

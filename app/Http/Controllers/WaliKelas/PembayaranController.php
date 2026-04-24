@@ -42,13 +42,31 @@ class PembayaranController extends Controller
 
     public function siswaDaftarTagihan(int $siswaId): View
     {
+        $batasTampil  = now()->endOfMonth();
+        $periodeAktif = now()->format('Y-m'); // e.g. "2026-04"
+
         $siswa = Siswa::with([
             'kelas',
-            'tagihanSiswa' => fn($q) => $q->where('status', '!=', 'void')->with([
-                'jenisTagihan',
-                'cicilan',
-                'pembayaran' => fn($q) => $q->where('is_void', false)->latest(),
-            ]),
+            'tagihanSiswa' => fn($q) => $q
+                ->where('status', '!=', 'void')
+                ->where(fn($q2) => $q2
+                    // SPP: tampil jika deskripsi (YYYY-MM) <= bulan berjalan
+                    ->where(fn($q3) => $q3->whereHas('jenisTagihan', fn($q4) => $q4
+                        ->where('kategori', 'spp')
+                        ->where('deskripsi', '<=', $periodeAktif)
+                    ))
+                    // Non-SPP: tampil jika due_date null atau <= akhir bulan berjalan
+                    ->orWhere(fn($q3) => $q3
+                        ->whereHas('jenisTagihan', fn($q4) => $q4->where('kategori', '!=', 'spp'))
+                        ->where(fn($q4) => $q4->whereNull('due_date')->orWhere('due_date', '<=', $batasTampil))
+                    )
+                )
+                ->orderBy('id')
+                ->with([
+                    'jenisTagihan',
+                    'cicilan',
+                    'pembayaran' => fn($q) => $q->where('is_void', false)->latest(),
+                ]),
         ])->findOrFail($siswaId);
 
         return view('wali-kelas.pembayaran.daftar-tagihan', compact('siswa'));

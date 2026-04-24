@@ -3,9 +3,17 @@
 @section('page-title', 'Rekap Tagihan Siswa')
 
 @php
-$statusLabel = ['lunas'=>'Lunas','cicilan'=>'Cicilan','belum_bayar'=>'Belum Bayar'];
-$statusColor = ['lunas'=>'bg-green-100 text-green-700','cicilan'=>'bg-yellow-100 text-yellow-700','belum_bayar'=>'bg-red-100 text-red-700'];
-$kategoriLabel = ['spp'=>'SPP','komite'=>'Komite','kegiatan'=>'Kegiatan','lainnya'=>'Lainnya'];
+$statusLabel  = ['lunas'=>'Lunas','cicilan'=>'Cicilan','belum_bayar'=>'Belum Bayar'];
+$statusColor  = ['lunas'=>'bg-green-100 text-green-700','cicilan'=>'bg-yellow-100 text-yellow-700','belum_bayar'=>'bg-red-100 text-red-700'];
+$kategoriLabel = \App\Models\JenisTagihan::kategoriLabel();
+$kategoriColor = [
+    'spp'       => 'bg-indigo-100 text-indigo-700',
+    'kas_kelas' => 'bg-cyan-100 text-cyan-700',
+    'buku_lks'  => 'bg-purple-100 text-purple-700',
+    'kegiatan'  => 'bg-orange-100 text-orange-700',
+    'seragam'   => 'bg-teal-100 text-teal-700',
+    'lainnya'   => 'bg-gray-100 text-gray-600',
+];
 @endphp
 
 @section('content')
@@ -39,8 +47,9 @@ $kategoriLabel = ['spp'=>'SPP','komite'=>'Komite','kegiatan'=>'Kegiatan','lainny
     <div class="bg-white rounded-xl shadow-sm p-4">
         <form method="GET" action="{{ route('bendahara.laporan.tagihan') }}" class="grid grid-cols-2 md:grid-cols-6 gap-3">
             <div class="md:col-span-2">
-                <input type="text" name="cari" value="{{ request('cari') }}"
+                <input type="text" id="input-cari" name="cari" value="{{ request('cari') }}"
                        placeholder="Cari nama / NIS siswa..."
+                       autocomplete="off"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
             <div>
@@ -117,7 +126,16 @@ $kategoriLabel = ['spp'=>'SPP','komite'=>'Komite','kegiatan'=>'Kegiatan','lainny
                         </td>
                         <td class="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{{ $t->siswa?->kelas?->nama ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-600 text-xs max-w-[160px] truncate" title="{{ $t->jenisTagihan?->nama }}">{{ $t->jenisTagihan?->nama ?? '—' }}</td>
-                        <td class="px-4 py-3 text-gray-500 text-xs">{{ $kategoriLabel[$t->jenisTagihan?->kategori] ?? ($t->jenisTagihan?->kategori ?? '—') }}</td>
+                        <td class="px-4 py-3">
+                            @php $kat = $t->jenisTagihan?->kategori; @endphp
+                            @if($kat)
+                            <span class="text-xs px-2 py-0.5 rounded-full {{ $kategoriColor[$kat] ?? 'bg-gray-100 text-gray-600' }}">
+                                {{ $kategoriLabel[$kat] ?? $kat }}
+                            </span>
+                            @else
+                            <span class="text-gray-300 text-xs">—</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-right text-gray-700 text-xs whitespace-nowrap font-medium">
                             Rp {{ number_format($t->nominal_total,0,',','.') }}
                         </td>
@@ -166,3 +184,19 @@ $kategoriLabel = ['spp'=>'SPP','komite'=>'Komite','kegiatan'=>'Kegiatan','lainny
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const input = document.getElementById('input-cari');
+    if (!input) return;
+    let timer;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            input.closest('form').submit();
+        }, 500);
+    });
+})();
+</script>
+@endpush

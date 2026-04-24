@@ -251,7 +251,7 @@ new Chart(document.getElementById('chartStatus'), {
 
 // ─── Bar per Kelas ────────────────────────────────────────
 @php
-$kelasNama     = $data['perKelas']->pluck('nama')->toJson();
+$kelasNama     = $data['perKelas']->pluck('kelas.nama')->toJson();
 $kelasTerbayar = $data['perKelas']->pluck('terbayar')->toJson();
 $kelasTunggak  = $data['perKelas']->pluck('tunggakan')->toJson();
 @endphp

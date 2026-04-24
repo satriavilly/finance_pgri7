@@ -6,8 +6,8 @@
 <div class="max-w-xl mx-auto space-y-4"
      x-data="{
         metode: 'tunai',
-        display: '{{ old('nominal') ? number_format(old('nominal'), 0, ',', '.') : '' }}',
-        raw: '{{ old('nominal') ?? '' }}',
+        display: '{{ old('nominal') ? number_format(old('nominal'), 0, ',', '.') : number_format($tagihan->sisa_tagihan, 0, ',', '.') }}',
+        raw: '{{ old('nominal') ?? (int)$tagihan->sisa_tagihan }}',
         today: '{{ now()->format('Y-m-d') }}',
         tanggal: '{{ old('tanggal_bayar', now()->format('Y-m-d')) }}',
         fileName: '',
@@ -32,6 +32,19 @@
             <div>
                 <p class="font-semibold text-gray-800">{{ $tagihan->siswa->nama }}</p>
                 <p class="text-xs text-gray-500">{{ $tagihan->jenisTagihan->nama }}</p>
+                <div class="mt-1">
+                    @if($tagihan->jenisTagihan->is_cicilan)
+                    <span class="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                        <i class="fas fa-layer-group text-[9px]"></i>
+                        Bisa dicicil &bull; {{ $tagihan->jenisTagihan->jumlah_cicilan }}x
+                    </span>
+                    @else
+                    <span class="inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                        <i class="fas fa-bolt text-[9px]"></i>
+                        Lunas sekaligus
+                    </span>
+                    @endif
+                </div>
             </div>
         </div>
         <div class="grid grid-cols-3 gap-3 text-sm bg-gray-50 rounded-lg p-3">
@@ -139,10 +152,16 @@
                 {{-- Nominal --}}
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="text-sm font-medium text-gray-700">Nominal Dibayar <span class="text-red-500">*</span></label>
+                        <label class="text-sm font-medium text-gray-700">
+                            Nominal Dibayar <span class="text-red-500">*</span>
+                            <span class="ml-1.5 text-xs font-normal text-green-600 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">
+                                <i class="fas fa-magic text-[9px] mr-0.5"></i>auto terisi
+                            </span>
+                        </label>
                         <button type="button" @click="setSisa()"
-                                class="text-xs text-blue-600 hover:underline">
-                            Isi sisa tagihan (Rp {{ number_format($tagihan->sisa_tagihan, 0, ',', '.') }})
+                                class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                            <i class="fas fa-rotate-left text-[10px]"></i>
+                            Reset ke sisa (Rp {{ number_format($tagihan->sisa_tagihan, 0, ',', '.') }})
                         </button>
                     </div>
                     <div class="relative">
@@ -186,7 +205,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Catatan <span class="text-gray-400 font-normal">(opsional)</span></label>
                     <textarea name="catatan" rows="2"
                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                              placeholder="Catatan pembayaran">{{ old('catatan') }}</textarea>
+                              placeholder="Catatan pembayaran">{{ old('catatan', 'Pembayaran ' . $tagihan->jenisTagihan->nama) }}</textarea>
                 </div>
             </div>
 

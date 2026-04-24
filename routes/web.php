@@ -7,6 +7,7 @@ use App\Http\Controllers\WaliKelas\TagihanController as WaliTagihanController;
 use App\Http\Controllers\WaliKelas\PembayaranController as WaliPembayaranController;
 use App\Http\Controllers\AdminTu\TagihanController as AdminTuTagihanController;
 use App\Http\Controllers\Siswa\TagihanController as SiswaTagihanController;
+use App\Http\Controllers\Ortu\TagihanController as OrtuTagihanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Bendahara\SiswaController as BendaharaSiswaController;
 use App\Http\Controllers\Bendahara\LaporanController as BendaharaLaporanController;
@@ -38,8 +39,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('tagihan', [AdminTuTagihanController::class, 'index'])->name('tagihan.index');
         Route::get('tagihan/buat', [AdminTuTagihanController::class, 'create'])->name('tagihan.create');
         Route::post('tagihan', [AdminTuTagihanController::class, 'store'])->name('tagihan.store');
+        Route::get('tagihan/{tagihan}/penerima', [AdminTuTagihanController::class, 'penerima'])->name('tagihan.penerima');
         Route::get('tagihan/{tagihan}/edit', [AdminTuTagihanController::class, 'edit'])->name('tagihan.edit');
         Route::put('tagihan/{tagihan}', [AdminTuTagihanController::class, 'update'])->name('tagihan.update');
+        Route::post('tagihan/distribusi-semua', [AdminTuTagihanController::class, 'distribusiSemua'])->name('tagihan.distribusi-semua');
         Route::post('tagihan/{tagihan}/distribusi-ulang', [AdminTuTagihanController::class, 'distribusiUlang'])->name('tagihan.distribusi-ulang');
         Route::delete('tagihan/{tagihan}', [AdminTuTagihanController::class, 'destroy'])->name('tagihan.destroy');
     });
@@ -77,6 +80,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('spp/{periode}/edit',                [BendaharaSppController::class, 'edit'])->name('spp.edit');
         Route::put('spp/{periode}',                     [BendaharaSppController::class, 'update'])->name('spp.update');
         Route::get('spp/{periode}',                     [BendaharaSppController::class, 'show'])->name('spp.show');
+    });
+
+    // Ortu
+    Route::middleware('role:ortu')->prefix('ortu')->name('ortu.')->group(function () {
+        Route::get('tagihan/pdf', [OrtuTagihanController::class, 'downloadPdf'])->name('tagihan.pdf');
     });
 
     // Admin
