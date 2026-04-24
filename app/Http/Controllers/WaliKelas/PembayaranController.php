@@ -42,7 +42,6 @@ class PembayaranController extends Controller
 
     public function siswaDaftarTagihan(int $siswaId): View
     {
-        $batasTampil  = now()->endOfMonth();
         $periodeAktif = now()->format('Y-m'); // e.g. "2026-04"
 
         $siswa = Siswa::with([
@@ -51,15 +50,12 @@ class PembayaranController extends Controller
                 ->where('status', '!=', 'void')
                 ->where(fn($q2) => $q2
                     // SPP: tampil jika deskripsi (YYYY-MM) <= bulan berjalan
-                    ->where(fn($q3) => $q3->whereHas('jenisTagihan', fn($q4) => $q4
+                    ->whereHas('jenisTagihan', fn($q3) => $q3
                         ->where('kategori', 'spp')
                         ->where('deskripsi', '<=', $periodeAktif)
-                    ))
-                    // Non-SPP: tampil jika due_date null atau <= akhir bulan berjalan
-                    ->orWhere(fn($q3) => $q3
-                        ->whereHas('jenisTagihan', fn($q4) => $q4->where('kategori', '!=', 'spp'))
-                        ->where(fn($q4) => $q4->whereNull('due_date')->orWhere('due_date', '<=', $batasTampil))
                     )
+                    // Non-SPP: selalu tampil
+                    ->orWhereHas('jenisTagihan', fn($q3) => $q3->where('kategori', '!=', 'spp'))
                 )
                 ->orderBy('id')
                 ->with([
@@ -75,6 +71,7 @@ class PembayaranController extends Controller
     public function formBayarTunai(int $tagihanId): View
     {
         $tagihan = TagihanSiswa::with(['siswa', 'jenisTagihan', 'cicilan'])->findOrFail($tagihanId);
+        abort_if($tagihan->jenisTagihan->kategori === 'spp', 403, 'Pembayaran SPP dilakukan melalui Bendahara.');
         $detail = $this->cicilanService->getTagihanDenganCicilan($tagihan);
 
         return view('wali-kelas.pembayaran.bayar-tunai', compact('tagihan', 'detail'));
@@ -82,7 +79,8 @@ class PembayaranController extends Controller
 
     public function bayarTunai(StorePembayaranTunaiRequest $request, int $tagihanId): RedirectResponse
     {
-        $tagihan = TagihanSiswa::findOrFail($tagihanId);
+        $tagihan = TagihanSiswa::with('jenisTagihan')->findOrFail($tagihanId);
+        abort_if($tagihan->jenisTagihan->kategori === 'spp', 403, 'Pembayaran SPP dilakukan melalui Bendahara.');
         $this->pembayaranService->bayarTunai($tagihan, $request->validated(), auth()->id());
 
         return redirect()->route('wali-kelas.siswa.tagihan', $tagihan->siswa_id)
@@ -107,7 +105,8 @@ class PembayaranController extends Controller
             'tanggal_bayar.before_or_equal' => 'Tanggal bayar tidak boleh lebih dari hari ini.',
         ]);
 
-        $tagihan = TagihanSiswa::findOrFail($tagihanId);
+        $tagihan = TagihanSiswa::with('jenisTagihan')->findOrFail($tagihanId);
+        abort_if($tagihan->jenisTagihan->kategori === 'spp', 403, 'Pembayaran SPP dilakukan melalui Bendahara.');
         $this->pembayaranService->uploadBuktiBayar(
             $tagihan,
             $request->only('metode', 'tanggal_bayar', 'nominal', 'cicilan_id', 'catatan'),

@@ -180,7 +180,9 @@
                                 <i class="fas fa-chevron-down text-[9px] transition-transform duration-150" :class="open ? 'rotate-180' : ''"></i>
                             </button>
                             @endif
-                            @if(!in_array($tagihan->status, ['lunas', 'void']))
+                            @if($tagihan->jenisTagihan->kategori === 'spp')
+                            <span class="text-xs text-gray-400 italic">Via Bendahara</span>
+                            @elseif(!in_array($tagihan->status, ['lunas', 'void']))
                             <a href="{{ route('wali-kelas.pembayaran.form-tunai', $tagihan->id) }}"
                                class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium whitespace-nowrap">
                                 <i class="fas fa-plus mr-1"></i>Catat Bayar
