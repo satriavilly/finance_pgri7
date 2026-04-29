@@ -33,7 +33,7 @@ class TunggakanController extends Controller
 
         // Closure to apply all tagihan filters (reused for summary and main query)
         $applyFilters = function ($q) use ($kelasIds, $request) {
-            $q->whereIn('status', ['belum_bayar', 'cicilan'])
+            return $q->whereIn('status', ['belum_bayar', 'cicilan'])
               ->when($kelasIds->isNotEmpty(), fn($q2) =>
                   $q2->whereHas('jenisTagihan', fn($q3) => $q3->whereIn('kelas_id', $kelasIds))
               )

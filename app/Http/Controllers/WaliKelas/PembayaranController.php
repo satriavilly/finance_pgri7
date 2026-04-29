@@ -75,7 +75,7 @@ class PembayaranController extends Controller
 
     public function formBayarTunai(int $tagihanId): View
     {
-        $tagihan = TagihanSiswa::with(['siswa', 'jenisTagihan', 'cicilan'])->findOrFail($tagihanId);
+        $tagihan = TagihanSiswa::with(['siswa', 'jenisTagihan.kelas.tahunAjaran', 'cicilan'])->findOrFail($tagihanId);
         abort_if($tagihan->jenisTagihan->kategori === 'spp', 403, 'Pembayaran SPP dilakukan melalui Bendahara.');
         $detail = $this->cicilanService->getTagihanDenganCicilan($tagihan);
 

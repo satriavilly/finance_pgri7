@@ -35,13 +35,8 @@
         <div class="relative z-10 flex flex-col justify-between p-12 w-full">
             {{-- Logo + nama sekolah --}}
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg p-1.5 flex-shrink-0">
-                    <img src="{{ asset('storage/pgri7.png') }}" alt="Logo" class="w-full h-full object-contain">
-                </div>
-                <div>
-                    <p class="text-white font-bold text-lg leading-tight">SMP PGRI 7</p>
-                    <p class="text-blue-200 text-sm">Kota Bandung</p>
-                </div>
+              
+   
             </div>
 
             {{-- Headline tengah --}}
@@ -75,8 +70,8 @@
     <div class="w-full lg:w-2/5 flex items-center justify-center bg-gray-50 p-8">
         <div class="w-full max-w-sm">
 
-            {{-- Logo mobile --}}
-            <div class="flex flex-col items-center mb-8 lg:hidden">
+            {{-- Logo --}}
+            <div class="flex flex-col items-center mb-8">
                 <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg p-2 mb-3">
                     <img src="{{ asset('storage/pgri7.png') }}" alt="Logo" class="w-full h-full object-contain">
                 </div>

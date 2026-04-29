@@ -36,6 +36,10 @@
             <div>
                 <p class="font-semibold text-gray-800">{{ $tagihan->siswa->nama }}</p>
                 <p class="text-xs text-gray-500">{{ $tagihan->jenisTagihan->nama }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">
+                    <i class="fas fa-calendar-alt mr-1"></i>
+                    TA {{ $tagihan->jenisTagihan->kelas?->tahunAjaran?->nama ?? '—' }}
+                </p>
                 <div class="mt-1">
                     @if($tagihan->jenisTagihan->is_cicilan)
                     <span class="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
@@ -109,35 +113,6 @@
             <input type="hidden" name="metode" :value="metode">
 
             <div class="space-y-4">
-
-                {{-- Cicilan --}}
-                @if($detail['cicilan']->isNotEmpty())
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Untuk Cicilan</label>
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:border-blue-400 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-                            <input type="radio" name="cicilan_id" value="" checked class="text-blue-600">
-                            <span class="text-sm text-gray-700">Pelunasan / di luar cicilan</span>
-                        </label>
-                        @foreach($detail['cicilan'] as $cicilan)
-                        @if($cicilan->status === 'belum_bayar')
-                        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:border-blue-400 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-                            <input type="radio" name="cicilan_id" value="{{ $cicilan->id }}" class="text-blue-600">
-                            <div class="flex-1 flex justify-between items-center">
-                                <p class="text-sm font-medium">Cicilan ke-{{ $cicilan->ke }}</p>
-                                <div class="text-right">
-                                    <p class="text-sm font-semibold text-gray-700">Rp {{ number_format($cicilan->nominal, 0, ',', '.') }}</p>
-                                    @if($cicilan->due_date)
-                                    <p class="text-xs text-gray-400">Jatuh tempo {{ $cicilan->due_date->format('d M Y') }}</p>
-                                    @endif
-                                </div>
-                            </div>
-                        </label>
-                        @endif
-                        @endforeach
-                    </div>
-                </div>
-                @endif
 
                 {{-- Tanggal Bayar --}}
                 <div>
