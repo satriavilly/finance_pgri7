@@ -20,18 +20,22 @@ $kategoriColor = [
 <div class="space-y-4">
 
     {{-- Summary cards --}}
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500">
             <p class="text-xs text-gray-400">Total Tagihan</p>
-            <p class="text-lg font-bold text-blue-700">Rp {{ number_format($summary['total'],0,',','.') }}</p>
+            <p class="text-base font-bold text-blue-700">Rp {{ number_format($summary['total'],0,',','.') }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-green-500">
-            <p class="text-xs text-gray-400">Terkumpul</p>
-            <p class="text-lg font-bold text-green-600">Rp {{ number_format($summary['terbayar'],0,',','.') }}</p>
+            <p class="text-xs text-gray-400">Terkumpul (Kas)</p>
+            <p class="text-base font-bold text-green-600">Rp {{ number_format($summary['terkumpul'],0,',','.') }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-purple-500">
+            <p class="text-xs text-gray-400">Subsidi / Beasiswa</p>
+            <p class="text-base font-bold text-purple-600">Rp {{ number_format($summary['subsidi'],0,',','.') }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-red-500">
             <p class="text-xs text-gray-400">Tunggakan</p>
-            <p class="text-lg font-bold text-red-600">Rp {{ number_format($summary['tunggakan'],0,',','.') }}</p>
+            <p class="text-base font-bold text-red-600">Rp {{ number_format($summary['tunggakan'],0,',','.') }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-green-400">
             <p class="text-xs text-gray-400">Tagihan Lunas</p>

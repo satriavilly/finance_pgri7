@@ -136,12 +136,15 @@ class LaporanController extends Controller
         if ($request->filled('kategori')) $sBase->whereHas('jenisTagihan', fn($q) => $q->where('kategori', $request->kategori));
         if ($request->filled('cari'))     $sBase->whereHas('siswa', fn($q) => $q->where('nama','ilike','%'.$request->cari.'%')->orWhere('nis','ilike','%'.$request->cari.'%'));
 
+        $subsidi = $sBase->sum('nominal_subsidi');
         $summary = [
-            'total'    => $sBase->sum('nominal_total'),
-            'terbayar' => $sBase->sum('nominal_terbayar'),
-            'tunggakan'=> $sBase->sum(\Illuminate\Support\Facades\DB::raw('nominal_total - nominal_terbayar')),
-            'lunas'    => (clone $sBase)->where('status','lunas')->count(),
-            'belum'    => (clone $sBase)->whereIn('status',['belum_bayar','cicilan'])->count(),
+            'total'     => $sBase->sum('nominal_total'),
+            'terbayar'  => $sBase->sum('nominal_terbayar'),
+            'subsidi'   => $subsidi,
+            'terkumpul' => $sBase->sum('nominal_terbayar') - $subsidi,
+            'tunggakan' => $sBase->sum(\Illuminate\Support\Facades\DB::raw('nominal_total - nominal_terbayar')),
+            'lunas'     => (clone $sBase)->where('status', 'lunas')->count(),
+            'belum'     => (clone $sBase)->whereIn('status', ['belum_bayar', 'cicilan'])->count(),
         ];
 
         return view('bendahara.laporan.tagihan', compact('tagihan', 'kelasList', 'summary', 'allTahunAjaran', 'tahunAjaran'));

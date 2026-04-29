@@ -54,9 +54,10 @@ class Pembayaran extends Model
     public static function metodeLabel(): array
     {
         return [
-            'tunai' => 'Tunai',
+            'tunai'    => 'Tunai',
             'transfer' => 'Transfer Bank',
-            'qris' => 'QRIS',
+            'qris'     => 'QRIS',
+            'beasiswa' => 'Beasiswa / Subsidi',
         ];
     }
 

@@ -136,16 +136,46 @@ class PembayaranService
         ]);
     }
 
+    public function terapkanBeasiswaSiswa(TagihanSiswa $tagihan, int $userId): Pembayaran
+    {
+        return DB::transaction(function () use ($tagihan, $userId) {
+            $sisa = $tagihan->sisa_tagihan;
+
+            $pembayaran = Pembayaran::create([
+                'tagihan_siswa_id' => $tagihan->id,
+                'cicilan_id'       => null,
+                'nominal'          => $sisa,
+                'metode'           => 'beasiswa',
+                'status_verifikasi'=> 'approved',
+                'verified_by'      => $userId,
+                'verified_at'      => now(),
+                'catatan'          => 'Beasiswa / Subsidi Penuh',
+                'created_by'       => $userId,
+            ]);
+
+            $tagihan->increment('nominal_terbayar', $sisa);
+            $tagihan->increment('nominal_subsidi', $sisa);
+            $tagihan->update(['status' => 'lunas']);
+
+            return $pembayaran;
+        });
+    }
+
     public function voidPembayaran(Pembayaran $pembayaran, string $catatan): void
     {
         DB::transaction(function () use ($pembayaran, $catatan) {
             if ($pembayaran->status_verifikasi === 'approved') {
                 $tagihan = $pembayaran->tagihanSiswa;
                 $tagihan->decrement('nominal_terbayar', $pembayaran->nominal);
+
+                if ($pembayaran->metode === 'beasiswa') {
+                    $tagihan->decrement('nominal_subsidi', $pembayaran->nominal);
+                }
+
                 $tagihan->refresh();
 
                 if ($tagihan->nominal_terbayar <= 0) {
-                    $tagihan->update(['status' => 'belum_bayar', 'nominal_terbayar' => 0]);
+                    $tagihan->update(['status' => 'belum_bayar', 'nominal_terbayar' => 0, 'nominal_subsidi' => 0]);
                 } else {
                     $tagihan->update(['status' => 'cicilan']);
                 }
@@ -156,8 +186,8 @@ class PembayaranService
             }
 
             $pembayaran->update([
-                'is_void' => true,
-                'catatan_void' => $catatan,
+                'is_void'     => true,
+                'catatan_void'=> $catatan,
             ]);
         });
     }

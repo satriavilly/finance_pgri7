@@ -15,6 +15,7 @@ class TagihanSiswa extends Model
         'jenis_tagihan_id',
         'nominal_total',
         'nominal_terbayar',
+        'nominal_subsidi',
         'status',
         'due_date',
         'catatan_void',
@@ -23,10 +24,11 @@ class TagihanSiswa extends Model
     ];
 
     protected $casts = [
-        'nominal_total' => 'decimal:2',
+        'nominal_total'    => 'decimal:2',
         'nominal_terbayar' => 'decimal:2',
-        'due_date' => 'date',
-        'void_at' => 'datetime',
+        'nominal_subsidi'  => 'decimal:2',
+        'due_date'         => 'date',
+        'void_at'          => 'datetime',
     ];
 
     public function siswa(): BelongsTo
