@@ -17,6 +17,7 @@ use App\Http\Controllers\Bendahara\SiswaController as BendaharaSiswaController;
 use App\Http\Controllers\Bendahara\LaporanController as BendaharaLaporanController;
 use App\Http\Controllers\Bendahara\SppController as BendaharaSppController;
 use App\Http\Controllers\Bendahara\BeasiswaController as BendaharaBeasiswaController;
+use App\Http\Controllers\Bendahara\JenisBeasiswaController as BendaharaJenisBeasiswaController;
 use App\Http\Controllers\Bendahara\TunggakanController as BendaharaTunggakanController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -92,7 +93,13 @@ Route::middleware(['auth'])->group(function () {
         Route::put('spp/{periode}',                     [BendaharaSppController::class, 'update'])->name('spp.update');
         Route::get('spp/{periode}',                     [BendaharaSppController::class, 'show'])->name('spp.show');
 
-        Route::get('tunggakan',               [BendaharaTunggakanController::class, 'index'])->name('tunggakan.index');
+        Route::get('tunggakan',                    [BendaharaTunggakanController::class, 'index'])->name('tunggakan.index');
+
+        Route::get('jenis-beasiswa',               [BendaharaJenisBeasiswaController::class, 'index'])->name('jenis-beasiswa.index');
+        Route::post('jenis-beasiswa',              [BendaharaJenisBeasiswaController::class, 'store'])->name('jenis-beasiswa.store');
+        Route::put('jenis-beasiswa/{jenisBeasiswa}',    [BendaharaJenisBeasiswaController::class, 'update'])->name('jenis-beasiswa.update');
+        Route::patch('jenis-beasiswa/{jenisBeasiswa}/toggle', [BendaharaJenisBeasiswaController::class, 'toggleAktif'])->name('jenis-beasiswa.toggle');
+        Route::delete('jenis-beasiswa/{jenisBeasiswa}', [BendaharaJenisBeasiswaController::class, 'destroy'])->name('jenis-beasiswa.destroy');
 
         Route::get('beasiswa',                 [BendaharaBeasiswaController::class, 'index'])->name('beasiswa.index');
         Route::post('beasiswa',                [BendaharaBeasiswaController::class, 'store'])->name('beasiswa.store');

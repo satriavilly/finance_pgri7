@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Models\JenisBeasiswa;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\TagihanSiswa;
@@ -23,22 +24,32 @@ class BeasiswaImport implements ToCollection, WithHeadingRow
 
     public function collection(Collection $rows): void
     {
-        $kelasIds = Kelas::where('tahun_ajaran_id', $this->tahunAjaranId)->pluck('id');
+        $kelasIds     = Kelas::where('tahun_ajaran_id', $this->tahunAjaranId)->pluck('id');
+        $jenisCache   = JenisBeasiswa::where('is_aktif', true)->get()->keyBy('kode');
 
         foreach ($rows as $i => $row) {
-            $rowNum = $i + 2;
+            $rowNum       = $i + 2;
             $nis          = trim((string) ($row['nis'] ?? ''));
-            $namaBeasiswa = trim((string) ($row['nama_beasiswa'] ?? ''));
-            if ($namaBeasiswa === '') {
-                $namaBeasiswa = 'Beasiswa / Subsidi Penuh';
-            }
+            $kodeBeasiswa = trim((string) ($row['kode_beasiswa'] ?? ''));
 
             if ($nis === '') {
                 continue;
             }
 
-            $siswa = Siswa::where('nis', $nis)->whereIn('kelas_id', $kelasIds)->first();
+            // Resolve beasiswa
+            if ($kodeBeasiswa === '') {
+                $this->errors[] = "Baris {$rowNum}: kolom kode_beasiswa wajib diisi.";
+                continue;
+            }
 
+            $jenisBeasiswa = $jenisCache->get($kodeBeasiswa);
+            if (!$jenisBeasiswa) {
+                $this->errors[] = "Baris {$rowNum}: kode beasiswa \"{$kodeBeasiswa}\" tidak ditemukan atau tidak aktif.";
+                continue;
+            }
+
+            // Resolve siswa
+            $siswa = Siswa::where('nis', $nis)->whereIn('kelas_id', $kelasIds)->first();
             if (!$siswa) {
                 $this->errors[] = "Baris {$rowNum}: NIS \"{$nis}\" tidak ditemukan di tahun ajaran ini.";
                 continue;
@@ -56,7 +67,7 @@ class BeasiswaImport implements ToCollection, WithHeadingRow
 
             foreach ($tagihans as $tagihan) {
                 try {
-                    $this->pembayaranService->terapkanBeasiswaSiswa($tagihan, $this->userId, $namaBeasiswa);
+                    $this->pembayaranService->terapkanBeasiswaSiswa($tagihan, $this->userId, $jenisBeasiswa->nama);
                 } catch (\Throwable $e) {
                     $this->errors[] = "Baris {$rowNum}: {$siswa->nama} — {$e->getMessage()}";
                     continue 2;

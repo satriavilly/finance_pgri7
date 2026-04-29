@@ -6,6 +6,7 @@ use App\Exports\BeasiswaExport;
 use App\Exports\BeasiswaTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Imports\BeasiswaImport;
+use App\Models\JenisBeasiswa;
 use App\Models\Kelas;
 use App\Models\Pembayaran;
 use App\Models\Siswa;
@@ -64,8 +65,10 @@ class BeasiswaController extends Controller
             ->orderBy('nama')
             ->get();
 
+        $jenisBeasiswaList = JenisBeasiswa::where('is_aktif', true)->orderBy('nama')->get();
+
         return view('bendahara.beasiswa.index', compact(
-            'allTahunAjaran', 'selectedTa', 'penerima', 'kelasList', 'siswaBelum'
+            'allTahunAjaran', 'selectedTa', 'penerima', 'kelasList', 'siswaBelum', 'jenisBeasiswaList'
         ));
     }
 
@@ -74,12 +77,13 @@ class BeasiswaController extends Controller
         $request->validate([
             'siswa_id'        => ['required', 'exists:siswa,id'],
             'tahun_ajaran_id' => ['required', 'exists:tahun_ajaran,id'],
-            'nama_beasiswa'   => ['nullable', 'string', 'max:200'],
+            'beasiswa_id'     => ['required', 'exists:jenis_beasiswa,id'],
         ]);
 
         $siswaId       = $request->integer('siswa_id');
         $tahunAjaranId = $request->integer('tahun_ajaran_id');
-        $namaBeasiswa  = trim($request->input('nama_beasiswa', '')) ?: 'Beasiswa / Subsidi Penuh';
+        $jenis         = JenisBeasiswa::findOrFail($request->integer('beasiswa_id'));
+        $namaBeasiswa  = $jenis->nama;
 
         $kelasIds = Kelas::where('tahun_ajaran_id', $tahunAjaranId)->pluck('id');
 

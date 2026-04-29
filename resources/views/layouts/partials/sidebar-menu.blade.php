@@ -82,10 +82,16 @@ if (!function_exists('sidebarLink')) {
     <span x-show="sidebarOpen" x-cloak>Kelola SPP</span>
 </a>
 
+<a href="{{ route('bendahara.jenis-beasiswa.index') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('bendahara.jenis-beasiswa.*') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-list-alt w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Master Beasiswa</span>
+</a>
+
 <a href="{{ route('bendahara.beasiswa.index') }}"
    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('bendahara.beasiswa.*') ? 'bg-blue-700' : '' }}">
     <i class="fas fa-graduation-cap w-5 flex-shrink-0"></i>
-    <span x-show="sidebarOpen" x-cloak>Beasiswa / Subsidi</span>
+    <span x-show="sidebarOpen" x-cloak>Penerima Beasiswa</span>
 </a>
 @endrole
 

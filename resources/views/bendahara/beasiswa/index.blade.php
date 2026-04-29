@@ -220,14 +220,43 @@ $kategoriWarna = \App\Models\KategoriTagihan::orderBy('urutan')->pluck('warna', 
             <button type="button" onclick="document.getElementById('modal-tambah').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
         </div>
+
+        @if($jenisBeasiswaList->isEmpty())
+        {{-- Tidak ada master beasiswa --}}
+        <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4 text-sm">
+            <p class="font-medium text-amber-800 mb-1"><i class="fas fa-exclamation-triangle mr-1"></i>Master beasiswa belum diisi</p>
+            <p class="text-amber-700 text-xs">Tambahkan jenis beasiswa terlebih dahulu sebelum menambah penerima.</p>
+            <a href="{{ route('bendahara.jenis-beasiswa.index') }}"
+               class="inline-block mt-2 text-xs font-medium text-purple-600 hover:text-purple-800 underline">
+                → Kelola Master Beasiswa
+            </a>
+        </div>
+        <div class="flex justify-end">
+            <button type="button" onclick="document.getElementById('modal-tambah').classList.add('hidden')"
+                    class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg">Tutup</button>
+        </div>
+        @else
         <form method="POST" action="{{ route('bendahara.beasiswa.store') }}">
             @csrf
             <input type="hidden" name="tahun_ajaran_id" value="{{ $selectedTa?->id }}">
 
             <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Beasiswa <span class="text-red-500">*</span></label>
+                <select name="beasiswa_id" required
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                    <option value="">-- Pilih Jenis Beasiswa --</option>
+                    @foreach($jenisBeasiswaList as $jb)
+                    <option value="{{ $jb->id }}">
+                        {{ $jb->nama }}{{ $jb->sumber ? ' · '.$jb->sumber : '' }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="mb-3">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Siswa <span class="text-red-500">*</span></label>
                 @if($siswaBelum->isEmpty())
-                <p class="text-sm text-gray-500 italic py-2">Semua siswa sudah lunas atau sudah mendapat beasiswa.</p>
+                <p class="text-sm text-gray-400 italic py-1">Semua siswa sudah lunas atau sudah mendapat beasiswa.</p>
                 @else
                 <select name="siswa_id" required
                         class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
@@ -237,13 +266,6 @@ $kategoriWarna = \App\Models\KategoriTagihan::orderBy('urutan')->pluck('warna', 
                     @endforeach
                 </select>
                 @endif
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Beasiswa</label>
-                <input type="text" name="nama_beasiswa" placeholder="Contoh: KIP, Beasiswa Prestasi, Beasiswa Sekolah..."
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                <p class="text-xs text-gray-400 mt-1">Kosongkan jika tidak ada nama khusus.</p>
             </div>
 
             <p class="text-xs text-gray-500 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
@@ -260,6 +282,8 @@ $kategoriWarna = \App\Models\KategoriTagihan::orderBy('urutan')->pluck('warna', 
                 </button>
                 @endif
             </div>
+        </form>
+        @endif
         </form>
     </div>
 </div>
@@ -298,8 +322,8 @@ $kategoriWarna = \App\Models\KategoriTagihan::orderBy('urutan')->pluck('warna', 
             <div class="mb-4 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 space-y-0.5">
                 <p class="font-medium text-gray-700 mb-1">Format kolom:</p>
                 <p><code class="bg-gray-200 rounded px-1 text-gray-700">nis</code> — NIS siswa <span class="text-red-500">(wajib)</span></p>
-                <p><code class="bg-gray-200 rounded px-1 text-gray-700">nama_beasiswa</code> — Nama beasiswa <span class="text-gray-400">(opsional)</span></p>
-                <p class="pt-1 text-gray-400">Satu baris = satu siswa. Semua tagihan belum lunas akan dilunasi.</p>
+                <p><code class="bg-gray-200 rounded px-1 text-gray-700">kode_beasiswa</code> — Kode dari master beasiswa <span class="text-red-500">(wajib)</span></p>
+                <p class="pt-1 text-gray-400">Lihat sheet "Referensi Kode" di template untuk daftar kode yang tersedia.</p>
             </div>
 
             <div class="flex gap-2 justify-end">
