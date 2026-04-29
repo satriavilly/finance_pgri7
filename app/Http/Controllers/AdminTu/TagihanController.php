@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminTu\StoreJenisTagihanRequest;
 use App\Models\JenisTagihan;
 use App\Models\Kelas;
+use App\Models\KategoriTagihan;
 use App\Models\TahunAjaran;
+use Illuminate\Validation\Rule;
 use App\Services\CicilanService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,15 +46,16 @@ class TagihanController extends Controller
             ->get()
             ->groupBy('tingkat');
 
-        return view('admin-tu.tagihan.create', compact('perAngkatan'));
+        $kategoriList = KategoriTagihan::orderBy('urutan')->orderBy('nama')->get();
+
+        return view('admin-tu.tagihan.create', compact('perAngkatan', 'kategoriList'));
     }
 
     public function store(StoreJenisTagihanRequest $request): RedirectResponse
     {
-        $data           = $request->validated();
-        $isCicilan      = $data['is_cicilan'] ?? false;
-        $jumlahCicilan  = $isCicilan ? ($data['jumlah_cicilan'] ?? 1) : 1;
-        $kelasIds       = $data['kelas_ids'];
+        $data      = $request->validated();
+        $isCicilan = $data['is_cicilan'] ?? false;
+        $kelasIds  = $data['kelas_ids'];
         $jumlahSiswa    = 0;
         $jumlahKelas    = 0;
 
@@ -65,7 +68,7 @@ class TagihanController extends Controller
                 'total_nominal'  => $data['total_nominal'],
                 'due_date'       => $data['due_date'] ?? null,
                 'is_cicilan'     => $isCicilan,
-                'jumlah_cicilan' => $jumlahCicilan,
+                'jumlah_cicilan' => null,
                 'is_aktif'       => true,
                 'created_by'     => auth()->id(),
             ]);
@@ -88,25 +91,23 @@ class TagihanController extends Controller
             ->orderBy('tingkat')->orderBy('nama')
             ->get();
 
-        return view('admin-tu.tagihan.edit', compact('tagihan', 'kelasList'));
+        $kategoriList = KategoriTagihan::orderBy('urutan')->orderBy('nama')->get();
+
+        return view('admin-tu.tagihan.edit', compact('tagihan', 'kelasList', 'kategoriList'));
     }
 
     public function update(Request $request, JenisTagihan $tagihan): RedirectResponse
     {
         $request->validate([
-            'nama'           => ['required', 'string', 'max:255'],
-            'deskripsi'      => ['nullable', 'string', 'max:1000'],
-            'kategori'       => ['required', 'in:kas_kelas,buku_lks,kegiatan,seragam,lainnya'],
-            'total_nominal'  => ['required', 'numeric', 'min:1000'],
-            'due_date'       => ['nullable', 'date'],
-            'is_cicilan'     => ['boolean'],
-            'jumlah_cicilan' => ['required_if:is_cicilan,1', 'nullable', 'integer', 'min:2', 'max:12'],
+            'nama'          => ['required', 'string', 'max:255'],
+            'deskripsi'     => ['nullable', 'string', 'max:1000'],
+            'kategori'      => ['required', Rule::exists('kategori_tagihan', 'kode')],
+            'total_nominal' => ['required', 'numeric', 'min:1000'],
+            'due_date'      => ['nullable', 'date'],
+            'is_cicilan'    => ['boolean'],
         ], [
-            'total_nominal.min'          => 'Nominal minimal Rp 1.000.',
-            'jumlah_cicilan.required_if' => 'Jumlah cicilan wajib diisi jika memilih cicilan.',
+            'total_nominal.min' => 'Nominal minimal Rp 1.000.',
         ]);
-
-        $isCicilan = $request->boolean('is_cicilan');
 
         $tagihan->update([
             'nama'           => $request->nama,
@@ -114,8 +115,8 @@ class TagihanController extends Controller
             'kategori'       => $request->kategori,
             'total_nominal'  => $request->total_nominal,
             'due_date'       => $request->due_date ?: null,
-            'is_cicilan'     => $isCicilan,
-            'jumlah_cicilan' => $isCicilan ? $request->jumlah_cicilan : 1,
+            'is_cicilan'     => $request->boolean('is_cicilan'),
+            'jumlah_cicilan' => null,
         ]);
 
         return redirect()->route('admin-tu.tagihan.index')

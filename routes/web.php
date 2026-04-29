@@ -6,9 +6,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WaliKelas\TagihanController as WaliTagihanController;
 use App\Http\Controllers\WaliKelas\PembayaranController as WaliPembayaranController;
 use App\Http\Controllers\AdminTu\TagihanController as AdminTuTagihanController;
+use App\Http\Controllers\AdminTu\KategoriTagihanController as AdminTuKategoriController;
 use App\Http\Controllers\Siswa\TagihanController as SiswaTagihanController;
 use App\Http\Controllers\Ortu\TagihanController as OrtuTagihanController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\TahunAjaranController;
+use App\Http\Controllers\Admin\SiswaImportExportController;
+use App\Http\Controllers\Admin\WaliKelasController;
 use App\Http\Controllers\Bendahara\SiswaController as BendaharaSiswaController;
 use App\Http\Controllers\Bendahara\LaporanController as BendaharaLaporanController;
 use App\Http\Controllers\Bendahara\SppController as BendaharaSppController;
@@ -45,6 +49,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('tagihan/distribusi-semua', [AdminTuTagihanController::class, 'distribusiSemua'])->name('tagihan.distribusi-semua');
         Route::post('tagihan/{tagihan}/distribusi-ulang', [AdminTuTagihanController::class, 'distribusiUlang'])->name('tagihan.distribusi-ulang');
         Route::delete('tagihan/{tagihan}', [AdminTuTagihanController::class, 'destroy'])->name('tagihan.destroy');
+
+        Route::get('kategori',                     [AdminTuKategoriController::class, 'index'])->name('kategori.index');
+        Route::post('kategori',                    [AdminTuKategoriController::class, 'store'])->name('kategori.store');
+        Route::patch('kategori/{kategori}',        [AdminTuKategoriController::class, 'update'])->name('kategori.update');
+        Route::delete('kategori/{kategori}',       [AdminTuKategoriController::class, 'destroy'])->name('kategori.destroy');
     });
 
     // Wali Kelas
@@ -91,5 +100,18 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', UserController::class)->except(['show', 'destroy']);
         Route::post('users/{user}/toggle-aktif', [UserController::class, 'toggleAktif'])->name('users.toggle-aktif');
+
+        Route::resource('tahun-ajaran', TahunAjaranController::class)
+            ->except(['show'])
+            ->parameters(['tahun-ajaran' => 'tahunAjaran']);
+        Route::post('tahun-ajaran/{tahunAjaran}/aktifkan', [TahunAjaranController::class, 'aktifkan'])->name('tahun-ajaran.aktifkan');
+
+        Route::get('siswa-import', [SiswaImportExportController::class, 'index'])->name('siswa-import.index');
+        Route::get('siswa-import/template', [SiswaImportExportController::class, 'downloadTemplate'])->name('siswa-import.template');
+        Route::get('siswa-import/export', [SiswaImportExportController::class, 'export'])->name('siswa-import.export');
+        Route::post('siswa-import/import', [SiswaImportExportController::class, 'import'])->name('siswa-import.import');
+
+        Route::get('wali-kelas', [WaliKelasController::class, 'index'])->name('wali-kelas.index');
+        Route::patch('wali-kelas/{kelas}', [WaliKelasController::class, 'update'])->name('wali-kelas.update');
     });
 });

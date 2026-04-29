@@ -12,30 +12,56 @@
         'seragam'   => 'bg-teal-100 text-teal-700',
         'lainnya'   => 'bg-gray-100 text-gray-600',
     ];
-
-    $byTahunAjaran = $tagihan
-        ->groupBy(fn($t) => $t->jenisTagihan->kelas?->tahunAjaran?->id ?? 0)
-        ->map(fn($group) => [
-            'tahunAjaran' => $group->first()->jenisTagihan->kelas?->tahunAjaran,
-            'tagihan'     => $group,
-        ])
-        ->sortByDesc(fn($g) => $g['tahunAjaran']?->tanggal_mulai ?? '');
+    $tagihanAktif = $tagihan->whereIn('status', ['belum_bayar', 'cicilan']);
+    $tagihanLunas = $tagihan->where('status', 'lunas');
+    $sisaTotal    = $tagihanAktif->sum(fn($t) => $t->nominal_total - $t->nominal_terbayar);
 @endphp
 <div class="space-y-4">
 
-    {{-- Info Siswa --}}
-    <div class="bg-white rounded-xl shadow-sm p-4 flex items-center gap-3">
+    {{-- Info Siswa + Tahun Ajaran --}}
+    <div class="bg-white rounded-xl shadow-sm p-4 flex flex-wrap items-center gap-3">
         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
             <span class="text-blue-700 font-bold">{{ strtoupper(substr($siswa->nama, 0, 1)) }}</span>
         </div>
-        <div>
+        <div class="flex-1 min-w-0">
             <p class="font-semibold text-gray-800">{{ $siswa->nama }}</p>
             <p class="text-sm text-gray-500">NIS {{ $siswa->nis }} &middot; Kelas {{ $siswa->kelas?->nama }}</p>
         </div>
+        {{-- Tahun Ajaran select --}}
+        <form method="GET" action="{{ route('siswa.tagihan.index') }}" class="flex items-center gap-2 flex-shrink-0">
+            <label class="text-xs text-gray-500 whitespace-nowrap">Tahun Ajaran:</label>
+            <select name="ta" onchange="this.form.submit()"
+                    class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                @foreach($allTahunAjaran as $ta)
+                <option value="{{ $ta->id }}" {{ $selectedTa?->id == $ta->id ? 'selected' : '' }}>
+                    {{ $ta->nama }}{{ $ta->is_aktif ? ' ★' : '' }}
+                </option>
+                @endforeach
+            </select>
+        </form>
         <a href="{{ route('siswa.tagihan.pdf') }}"
-           class="ml-auto flex-shrink-0 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+           class="flex-shrink-0 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
             <i class="fas fa-file-pdf"></i> Unduh PDF
         </a>
+    </div>
+
+    {{-- Ringkasan --}}
+    <div class="grid grid-cols-3 gap-3">
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+            <p class="text-2xl font-bold text-gray-800">{{ $tagihan->count() }}</p>
+            <p class="text-xs text-gray-500 mt-1">Total Tagihan</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+            <p class="text-2xl font-bold text-red-500">{{ $tagihanAktif->count() }}</p>
+            <p class="text-xs text-gray-500 mt-1">Belum Lunas</p>
+            @if($sisaTotal > 0)
+            <p class="text-xs text-red-400 mt-0.5 font-medium">Rp {{ number_format($sisaTotal,0,',','.') }}</p>
+            @endif
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+            <p class="text-2xl font-bold text-green-600">{{ $tagihanLunas->count() }}</p>
+            <p class="text-xs text-gray-500 mt-1">Sudah Lunas</p>
+        </div>
     </div>
 
     @if($tagihan->isEmpty())
@@ -58,24 +84,23 @@
         </button>
     </div>
 
-    @foreach($byTahunAjaran as $group)
-    @php $ta = $group['tahunAjaran']; @endphp
+    {{-- Tabel --}}
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="flex items-center gap-3 px-4 py-3 border-b bg-gray-50">
             <i class="fas fa-graduation-cap text-gray-400"></i>
-            <span class="text-sm font-semibold text-gray-700">Tahun Ajaran {{ $ta?->nama ?? '-' }}</span>
-            @if($ta?->is_aktif)
+            <span class="text-sm font-semibold text-gray-700">Tahun Ajaran {{ $selectedTa?->nama ?? '-' }}</span>
+            @if($selectedTa?->is_aktif)
             <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">
                 <i class="fas fa-circle text-green-500 text-[8px] mr-1"></i>Aktif
             </span>
             @endif
-            <span class="ml-auto text-xs text-gray-400">{{ $group['tagihan']->count() }} tagihan</span>
+            <span class="ml-auto text-xs text-gray-400">{{ $tagihan->count() }} tagihan</span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
                 <thead class="border-b">
-                    <tr class="text-xs text-gray-500">
+                    <tr class="text-xs text-gray-500 bg-gray-50">
                         <th class="text-left px-4 py-2.5 font-medium">Nama Tagihan</th>
                         <th class="text-left px-4 py-2.5 font-medium">Kategori</th>
                         <th class="text-right px-4 py-2.5 font-medium">Total</th>
@@ -86,7 +111,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @foreach($group['tagihan'] as $t)
+                    @foreach($tagihan as $t)
                     @php
                         $kat      = $t->jenisTagihan->kategori;
                         $katLabel = \App\Models\JenisTagihan::kategoriLabel()[$kat] ?? $kat;
@@ -137,11 +162,10 @@
                 </tbody>
             </table>
         </div>
-    </div>
-    @endforeach
 
-    <div id="empty-result" class="hidden bg-white rounded-xl shadow-sm px-4 py-8 text-center text-gray-400 text-sm">
-        Tidak ada tagihan yang cocok dengan pencarian.
+        <div id="empty-result" class="hidden px-4 py-8 text-center text-gray-400 text-sm border-t">
+            Tidak ada tagihan yang cocok dengan pencarian.
+        </div>
     </div>
 
     @endif

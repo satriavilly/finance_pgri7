@@ -50,13 +50,6 @@ class JenisTagihan extends Model
 
     public static function kategoriLabel(): array
     {
-        return [
-            'spp'       => 'SPP',
-            'kas_kelas' => 'Kas Kelas',
-            'buku_lks'  => 'Buku & LKS',
-            'kegiatan'  => 'Kegiatan',
-            'seragam'   => 'Seragam',
-            'lainnya'   => 'Lainnya',
-        ];
+        return KategoriTagihan::labelMap();
     }
 }

@@ -15,6 +15,15 @@ $meterBg       = ['tunai'=>'bg-green-500','transfer'=>'bg-blue-500','qris'=>'bg-
 @section('content')
 <div class="space-y-5">
 
+    {{-- Tahun Ajaran --}}
+    <div class="flex items-center justify-between">
+        @include('layouts.partials.tahun-ajaran-select', [
+            'allTahunAjaran' => $allTahunAjaran,
+            'selectedTa'     => $selectedTa,
+            'taRoute'        => 'dashboard',
+        ])
+    </div>
+
     {{-- KPI Cards --}}
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <a href="{{ route('bendahara.laporan.tagihan') }}" class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500 hover:shadow-md transition-shadow block">

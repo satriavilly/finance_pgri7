@@ -6,8 +6,10 @@
 <div class="max-w-xl mx-auto space-y-4"
      x-data="{
         metode: 'tunai',
+        sisaTagihan: {{ (int)$tagihan->sisa_tagihan }},
         display: '{{ old('nominal') ? number_format(old('nominal'), 0, ',', '.') : number_format($tagihan->sisa_tagihan, 0, ',', '.') }}',
         raw: '{{ old('nominal') ?? (int)$tagihan->sisa_tagihan }}',
+        overLimit: false,
         today: '{{ now()->format('Y-m-d') }}',
         tanggal: '{{ old('tanggal_bayar', now()->format('Y-m-d')) }}',
         fileName: '',
@@ -15,11 +17,13 @@
             let num = val.replace(/\D/g, '');
             this.raw = num;
             this.display = num ? parseInt(num).toLocaleString('id-ID') : '';
+            this.overLimit = num !== '' && parseInt(num) > this.sisaTagihan;
         },
         setToday() { this.tanggal = this.today; },
         setSisa() {
             this.raw = '{{ (int)$tagihan->sisa_tagihan }}';
             this.display = '{{ number_format($tagihan->sisa_tagihan, 0, ',', '.') }}';
+            this.overLimit = false;
         }
      }">
 
@@ -36,7 +40,7 @@
                     @if($tagihan->jenisTagihan->is_cicilan)
                     <span class="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
                         <i class="fas fa-layer-group text-[9px]"></i>
-                        Bisa dicicil &bull; {{ $tagihan->jenisTagihan->jumlah_cicilan }}x
+                        Cicilan bebas
                     </span>
                     @else
                     <span class="inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
@@ -165,13 +169,25 @@
                         </button>
                     </div>
                     <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">Rp</span>
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium"
+                              :class="overLimit ? 'text-red-500' : 'text-gray-500'">Rp</span>
                         <input type="text" inputmode="numeric"
                                x-model="display"
                                @input="format($event.target.value)"
                                required
-                               class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                               :class="overLimit
+                                   ? 'border-red-400 bg-red-50 focus:ring-red-400'
+                                   : 'border-gray-300 focus:ring-blue-500'"
+                               class="w-full border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:border-transparent outline-none"
                                placeholder="Contoh: 50.000">
+                    </div>
+                    <div x-show="overLimit" x-cloak
+                         class="flex items-center gap-1.5 mt-1.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
+                        <i class="fas fa-exclamation-circle flex-shrink-0"></i>
+                        <span>Nominal melebihi sisa tagihan
+                            (maks Rp {{ number_format($tagihan->sisa_tagihan, 0, ',', '.') }}).
+                            <button type="button" @click="setSisa()" class="underline font-medium ml-1">Reset ke sisa</button>
+                        </span>
                     </div>
                     <input type="hidden" name="nominal" :value="raw">
                     @error('nominal')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
@@ -211,10 +227,13 @@
 
             <div class="flex gap-3 mt-5">
                 <button type="submit"
-                        :class="metode==='tunai' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'"
-                        class="text-white font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2">
-                    <i class="fas" :class="metode==='tunai' ? 'fa-check' : 'fa-paper-plane'"></i>
-                    <span x-text="metode==='tunai' ? 'Catat Pembayaran' : 'Kirim Bukti Bayar'"></span>
+                        :disabled="overLimit"
+                        :class="overLimit
+                            ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                            : (metode==='tunai' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white')"
+                        class="font-medium px-6 py-2.5 rounded-lg text-sm flex items-center gap-2">
+                    <i class="fas" :class="overLimit ? 'fa-ban' : (metode==='tunai' ? 'fa-check' : 'fa-paper-plane')"></i>
+                    <span x-text="overLimit ? 'Nominal terlalu besar' : (metode==='tunai' ? 'Catat Pembayaran' : 'Kirim Bukti Bayar')"></span>
                 </button>
                 <a href="{{ route('wali-kelas.siswa.index') }}"
                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-lg text-sm">

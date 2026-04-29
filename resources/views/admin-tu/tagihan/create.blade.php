@@ -90,8 +90,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Kategori <span class="text-red-500">*</span></label>
                     <select name="kategori" required
                             class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                        @foreach(\App\Models\JenisTagihan::kategoriLabel() as $val => $label)
-                        <option value="{{ $val }}" {{ old('kategori') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                        @foreach($kategoriList as $kat)
+                        <option value="{{ $kat->kode }}" {{ old('kategori') === $kat->kode ? 'selected' : '' }}>{{ $kat->nama }}</option>
                         @endforeach
                     </select>
                     @error('kategori')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
@@ -112,23 +112,16 @@
                 </div>
 
                 {{-- Cicilan --}}
-                <div class="border border-gray-200 rounded-xl p-4 space-y-3">
+                <div class="border border-gray-200 rounded-xl p-4">
                     <label class="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" name="is_cicilan" value="1" x-model="isCicilan"
                                {{ old('is_cicilan') ? 'checked' : '' }}
                                class="rounded border-gray-300 text-blue-600">
-                        <span class="text-sm font-medium text-gray-700">Tagihan ini bisa dicicil</span>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Tagihan ini bisa dicicil</span>
+                            <p class="text-xs text-gray-400 mt-0.5">Siswa dapat membayar sebagian demi sebagian, tanpa batasan jumlah cicilan.</p>
+                        </div>
                     </label>
-                    <div x-show="isCicilan" x-cloak>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Cicilan <span class="text-red-500">*</span></label>
-                        <select name="jumlah_cicilan"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                            @for($i = 2; $i <= 12; $i++)
-                            <option value="{{ $i }}" {{ old('jumlah_cicilan', 2) == $i ? 'selected' : '' }}>{{ $i }}x cicilan</option>
-                            @endfor
-                        </select>
-                        @error('jumlah_cicilan')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
-                    </div>
                 </div>
 
                 {{-- Jatuh Tempo --}}

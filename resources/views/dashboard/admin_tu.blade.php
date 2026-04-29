@@ -5,9 +5,13 @@
 @section('content')
 <div class="space-y-4">
 
-    <p class="text-sm text-gray-500">
-        Tahun Ajaran: <strong>{{ $tahunAjaran?->nama ?? '-' }}</strong>
-    </p>
+    <div class="flex items-center justify-between">
+        @include('layouts.partials.tahun-ajaran-select', [
+            'allTahunAjaran' => $allTahunAjaran,
+            'selectedTa'     => $selectedTa,
+            'taRoute'        => 'dashboard',
+        ])
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500">

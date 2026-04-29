@@ -19,11 +19,16 @@ class PembayaranController extends Controller
         private CicilanService $cicilanService,
     ) {}
 
-    public function daftarSiswa(): View
+    public function daftarSiswa(\Illuminate\Http\Request $request): View
     {
+        $allTahunAjaran = \App\Models\TahunAjaran::orderByDesc('tanggal_mulai')->get();
+        $selectedTa = $request->filled('ta')
+            ? $allTahunAjaran->firstWhere('id', $request->integer('ta'))
+            : \App\Models\TahunAjaran::aktif() ?? $allTahunAjaran->first();
+
         $kelas = auth()->user()->kelasWali()
             ->with('tahunAjaran')
-            ->whereHas('tahunAjaran', fn($q) => $q->where('is_aktif', true))
+            ->when($selectedTa, fn($q) => $q->where('tahun_ajaran_id', $selectedTa->id))
             ->first();
 
         $siswa = $kelas
@@ -37,7 +42,7 @@ class PembayaranController extends Controller
                 ->get()
             : collect();
 
-        return view('wali-kelas.pembayaran.daftar-siswa', compact('kelas', 'siswa'));
+        return view('wali-kelas.pembayaran.daftar-siswa', compact('kelas', 'siswa', 'allTahunAjaran', 'selectedTa'));
     }
 
     public function siswaDaftarTagihan(int $siswaId): View
@@ -89,23 +94,30 @@ class PembayaranController extends Controller
 
     public function uploadBuktiWaliKelas(\Illuminate\Http\Request $request, int $tagihanId): RedirectResponse
     {
+        $tagihan = TagihanSiswa::with('jenisTagihan')->findOrFail($tagihanId);
+
         $request->validate([
             'metode'        => ['required', 'in:transfer,qris'],
             'tanggal_bayar' => ['required', 'date', 'before_or_equal:today'],
-            'nominal'       => ['required', 'numeric', 'min:1000'],
+            'nominal'       => [
+                'required', 'numeric', 'min:1000',
+                function ($attr, $value, $fail) use ($tagihan) {
+                    if ($value > $tagihan->sisa_tagihan) {
+                        $fail('Nominal melebihi sisa tagihan (Rp ' . number_format($tagihan->sisa_tagihan, 0, ',', '.') . ').');
+                    }
+                },
+            ],
             'cicilan_id'    => ['nullable', 'exists:cicilan,id'],
             'bukti_bayar'   => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
             'catatan'       => ['nullable', 'string', 'max:500'],
         ], [
-            'bukti_bayar.required'  => 'File bukti bayar wajib diunggah.',
-            'bukti_bayar.mimes'     => 'File harus berformat JPG, PNG, atau PDF.',
-            'bukti_bayar.max'       => 'Ukuran file maksimal 2 MB.',
-            'nominal.min'           => 'Nominal minimal Rp 1.000.',
-            'tanggal_bayar.required'       => 'Tanggal bayar wajib diisi.',
-            'tanggal_bayar.before_or_equal' => 'Tanggal bayar tidak boleh lebih dari hari ini.',
+            'bukti_bayar.required'           => 'File bukti bayar wajib diunggah.',
+            'bukti_bayar.mimes'              => 'File harus berformat JPG, PNG, atau PDF.',
+            'bukti_bayar.max'                => 'Ukuran file maksimal 2 MB.',
+            'nominal.min'                    => 'Nominal minimal Rp 1.000.',
+            'tanggal_bayar.required'         => 'Tanggal bayar wajib diisi.',
+            'tanggal_bayar.before_or_equal'  => 'Tanggal bayar tidak boleh lebih dari hari ini.',
         ]);
-
-        $tagihan = TagihanSiswa::with('jenisTagihan')->findOrFail($tagihanId);
         abort_if($tagihan->jenisTagihan->kategori === 'spp', 403, 'Pembayaran SPP dilakukan melalui Bendahara.');
         $this->pembayaranService->uploadBuktiBayar(
             $tagihan,

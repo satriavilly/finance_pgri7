@@ -21,22 +21,33 @@ class DashboardController extends Controller
         }
 
         if ($user->hasRole('bendahara')) {
-            $data = $tahunAjaran ? $this->laporanService->dashboardBendahara($tahunAjaran->id) : [];
-            return view('dashboard.bendahara', compact('tahunAjaran', 'data'));
+            $allTahunAjaran = TahunAjaran::orderByDesc('tanggal_mulai')->get();
+            $selectedTa = $request->filled('ta')
+                ? $allTahunAjaran->firstWhere('id', $request->integer('ta'))
+                : TahunAjaran::aktif() ?? $allTahunAjaran->first();
+            $data = $selectedTa ? $this->laporanService->dashboardBendahara($selectedTa->id) : [];
+            return view('dashboard.bendahara', compact('tahunAjaran', 'selectedTa', 'allTahunAjaran', 'data'));
         }
 
         if ($user->hasRole('admin_tu')) {
-            $totalTagihan = \App\Models\JenisTagihan::whereHas('kelas.tahunAjaran', fn($q) => $q->where('is_aktif', true))
-                ->whereNull('deleted_at')
-                ->count();
-            $totalKelas = \App\Models\Kelas::whereHas('tahunAjaran', fn($q) => $q->where('is_aktif', true))->count();
-            return view('dashboard.admin_tu', compact('tahunAjaran', 'totalTagihan', 'totalKelas'));
+            $allTahunAjaran = TahunAjaran::orderByDesc('tanggal_mulai')->get();
+            $selectedTa = $request->filled('ta')
+                ? $allTahunAjaran->firstWhere('id', $request->integer('ta'))
+                : TahunAjaran::aktif() ?? $allTahunAjaran->first();
+            $totalTagihan = \App\Models\JenisTagihan::when($selectedTa, fn($q) => $q->whereHas('kelas', fn($q2) => $q2->where('tahun_ajaran_id', $selectedTa->id)))
+                ->whereNull('deleted_at')->count();
+            $totalKelas = \App\Models\Kelas::when($selectedTa, fn($q) => $q->where('tahun_ajaran_id', $selectedTa->id))->count();
+            return view('dashboard.admin_tu', compact('tahunAjaran', 'selectedTa', 'allTahunAjaran', 'totalTagihan', 'totalKelas'));
         }
 
         if ($user->hasRole('wali_kelas')) {
-            $kelas = $user->kelasWali()->where('tahun_ajaran_id', $tahunAjaran?->id)->first();
+            $allTahunAjaran = TahunAjaran::orderByDesc('tanggal_mulai')->get();
+            $selectedTa = $request->filled('ta')
+                ? $allTahunAjaran->firstWhere('id', $request->integer('ta'))
+                : TahunAjaran::aktif() ?? $allTahunAjaran->first();
+            $kelas = $user->kelasWali()->where('tahun_ajaran_id', $selectedTa?->id)->first();
             $data = $kelas ? $this->laporanService->dashboardWaliKelas($kelas->id) : [];
-            return view('dashboard.wali_kelas', compact('tahunAjaran', 'kelas', 'data'));
+            return view('dashboard.wali_kelas', compact('tahunAjaran', 'selectedTa', 'allTahunAjaran', 'kelas', 'data'));
         }
 
         if ($user->hasRole('kepsek')) {

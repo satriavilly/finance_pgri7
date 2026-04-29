@@ -12,6 +12,15 @@
          }
      }">
 
+    {{-- Tahun Ajaran --}}
+    <div class="flex items-center justify-between">
+        @include('layouts.partials.tahun-ajaran-select', [
+            'allTahunAjaran' => $allTahunAjaran,
+            'selectedTa'     => $selectedTa,
+            'taRoute'        => 'wali-kelas.siswa.index',
+        ])
+    </div>
+
     @if(!$kelas)
     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
         <p class="text-yellow-700">Anda belum ditugaskan sebagai wali kelas pada tahun ajaran aktif.</p>

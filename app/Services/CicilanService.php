@@ -26,7 +26,7 @@ class CicilanService
                     ]
                 );
 
-                if ($jenisTagihan->is_cicilan && $tagihan->wasRecentlyCreated) {
+                if ($jenisTagihan->is_cicilan && $jenisTagihan->jumlah_cicilan && $tagihan->wasRecentlyCreated) {
                     $this->buatCicilanUntukTagihan($tagihan, $jenisTagihan);
                 }
             }

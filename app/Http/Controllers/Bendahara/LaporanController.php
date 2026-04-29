@@ -14,12 +14,21 @@ class LaporanController extends Controller
 {
     public function transaksi(Request $request): View
     {
-        $tahunAjaran = TahunAjaran::aktif();
-        $kelasList   = Kelas::whereHas('tahunAjaran', fn($q) => $q->where('is_aktif', true))
-            ->orderBy('tingkat')->orderBy('nama')->get();
+        $allTahunAjaran = TahunAjaran::orderByDesc('tanggal_mulai')->get();
+        $tahunAjaran = $request->filled('ta')
+            ? $allTahunAjaran->firstWhere('id', $request->integer('ta'))
+            : TahunAjaran::aktif() ?? $allTahunAjaran->first();
+
+        $kelasList = $tahunAjaran
+            ? Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->orderBy('tingkat')->orderBy('nama')->get()
+            : collect();
 
         $query = Pembayaran::with(['tagihanSiswa.siswa.kelas', 'tagihanSiswa.jenisTagihan'])
             ->where('is_void', false);
+
+        if ($tahunAjaran) {
+            $query->whereHas('tagihanSiswa.siswa.kelas', fn($q) => $q->where('tahun_ajaran_id', $tahunAjaran->id));
+        }
 
         if ($request->filled('kelas_id')) {
             $query->whereHas('tagihanSiswa.siswa', fn($q) => $q->where('kelas_id', $request->kelas_id));
@@ -56,6 +65,7 @@ class LaporanController extends Controller
 
         // summary tanpa paginate
         $baseQuery = Pembayaran::where('is_void', false);
+        if ($tahunAjaran)                          $baseQuery->whereHas('tagihanSiswa.siswa.kelas', fn($q) => $q->where('tahun_ajaran_id', $tahunAjaran->id));
         if ($request->filled('kelas_id'))          $baseQuery->whereHas('tagihanSiswa.siswa', fn($q) => $q->where('kelas_id', $request->kelas_id));
         if ($request->filled('metode'))             $baseQuery->where('metode', $request->metode);
         if ($request->filled('status_verifikasi')) $baseQuery->where('status_verifikasi', $request->status_verifikasi);
@@ -70,17 +80,23 @@ class LaporanController extends Controller
             'count'    => $baseQuery->count(),
         ];
 
-        return view('bendahara.laporan.transaksi', compact('transaksi', 'kelasList', 'summary'));
+        return view('bendahara.laporan.transaksi', compact('transaksi', 'kelasList', 'summary', 'allTahunAjaran', 'tahunAjaran'));
     }
 
     public function tagihan(Request $request): View
     {
-        $kelasList = Kelas::whereHas('tahunAjaran', fn($q) => $q->where('is_aktif', true))
-            ->orderBy('tingkat')->orderBy('nama')->get();
+        $allTahunAjaran = TahunAjaran::orderByDesc('tanggal_mulai')->get();
+        $tahunAjaran = $request->filled('ta')
+            ? $allTahunAjaran->firstWhere('id', $request->integer('ta'))
+            : TahunAjaran::aktif() ?? $allTahunAjaran->first();
+
+        $kelasList = $tahunAjaran
+            ? Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->orderBy('tingkat')->orderBy('nama')->get()
+            : collect();
 
         $query = TagihanSiswa::with(['siswa.kelas', 'jenisTagihan', 'pembayaran'])
             ->where('status', '!=', 'void')
-            ->whereHas('siswa.kelas.tahunAjaran', fn($q) => $q->where('is_aktif', true));
+            ->when($tahunAjaran, fn($q) => $q->whereHas('siswa.kelas', fn($q2) => $q2->where('tahun_ajaran_id', $tahunAjaran->id)));
 
         if ($request->filled('kelas_id')) {
             $query->whereHas('siswa', fn($q) => $q->where('kelas_id', $request->kelas_id));
@@ -114,7 +130,7 @@ class LaporanController extends Controller
 
         // recalc summary properly
         $sBase = TagihanSiswa::where('status','!=','void')
-            ->whereHas('siswa.kelas.tahunAjaran', fn($q) => $q->where('is_aktif', true));
+            ->when($tahunAjaran, fn($q) => $q->whereHas('siswa.kelas', fn($q2) => $q2->where('tahun_ajaran_id', $tahunAjaran->id)));
         if ($request->filled('kelas_id')) $sBase->whereHas('siswa', fn($q) => $q->where('kelas_id', $request->kelas_id));
         if ($request->filled('status'))   $sBase->where('status', $request->status);
         if ($request->filled('kategori')) $sBase->whereHas('jenisTagihan', fn($q) => $q->where('kategori', $request->kategori));
@@ -128,6 +144,6 @@ class LaporanController extends Controller
             'belum'    => (clone $sBase)->whereIn('status',['belum_bayar','cicilan'])->count(),
         ];
 
-        return view('bendahara.laporan.tagihan', compact('tagihan', 'kelasList', 'summary'));
+        return view('bendahara.laporan.tagihan', compact('tagihan', 'kelasList', 'summary', 'allTahunAjaran', 'tahunAjaran'));
     }
 }

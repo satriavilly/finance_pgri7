@@ -7,30 +7,16 @@
 
     {{-- Header --}}
     <div class="flex justify-between items-center">
-        <p class="text-sm text-gray-500">Pilih tahun ajaran untuk melihat tagihan</p>
+        @include('layouts.partials.tahun-ajaran-select', [
+            'allTahunAjaran' => $allTahunAjaran,
+            'selectedTa'     => $tahunAjaran,
+            'taRoute'        => 'admin-tu.tagihan.index',
+        ])
         <a href="{{ route('admin-tu.tagihan.create') }}"
            class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
             <i class="fas fa-plus"></i> Buat Tagihan Baru
         </a>
     </div>
-
-    {{-- Tahun Ajaran Tabs --}}
-    @if($allTahunAjaran->isNotEmpty())
-    <div class="flex gap-2 flex-wrap">
-        @foreach($allTahunAjaran as $ta)
-        <a href="{{ route('admin-tu.tagihan.index', ['ta' => $ta->id]) }}"
-           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors
-                  {{ $tahunAjaran?->id === $ta->id
-                     ? 'bg-blue-600 text-white border-blue-600'
-                     : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600' }}">
-            {{ $ta->nama }}
-            @if($ta->is_aktif)
-            <span class="text-xs {{ $tahunAjaran?->id === $ta->id ? 'bg-blue-500' : 'bg-green-500' }} text-white px-1.5 py-0.5 rounded-full leading-none">Aktif</span>
-            @endif
-        </a>
-        @endforeach
-    </div>
-    @endif
 
     {{-- Flash --}}
     @if(session('success'))
@@ -110,7 +96,7 @@
                         <p class="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{{ $item->deskripsi }}</p>
                         @endif
                         @if($item->is_cicilan)
-                        <span class="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full mt-0.5 inline-block">{{ $item->jumlah_cicilan }}x cicilan</span>
+                        <span class="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full mt-0.5 inline-block">Cicilan bebas</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-gray-600">Kelas {{ $item->kelas->nama }}</td>

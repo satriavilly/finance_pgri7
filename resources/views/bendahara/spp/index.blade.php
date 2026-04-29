@@ -10,30 +10,16 @@ $bulanNama = ['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=
 <div class="space-y-4">
 
     <div class="flex justify-between items-center">
-        <p class="text-sm text-gray-500">Pilih tahun ajaran untuk melihat SPP</p>
+        @include('layouts.partials.tahun-ajaran-select', [
+            'allTahunAjaran' => $allTahunAjaran,
+            'selectedTa'     => $tahunAjaran,
+            'taRoute'        => 'bendahara.spp.index',
+        ])
         <a href="{{ route('bendahara.spp.create') }}"
            class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2">
             <i class="fas fa-plus"></i> Buat SPP Baru
         </a>
     </div>
-
-    {{-- Tahun Ajaran Tabs --}}
-    @if($allTahunAjaran->isNotEmpty())
-    <div class="flex gap-2 flex-wrap">
-        @foreach($allTahunAjaran as $ta)
-        <a href="{{ route('bendahara.spp.index', ['ta' => $ta->id]) }}"
-           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors
-                  {{ $tahunAjaran?->id === $ta->id
-                     ? 'bg-blue-600 text-white border-blue-600'
-                     : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600' }}">
-            {{ $ta->nama }}
-            @if($ta->is_aktif)
-            <span class="text-xs {{ $tahunAjaran?->id === $ta->id ? 'bg-blue-500' : 'bg-green-500' }} text-white px-1.5 py-0.5 rounded-full leading-none">Aktif</span>
-            @endif
-        </a>
-        @endforeach
-    </div>
-    @endif
 
     @if(session('success'))
     <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">

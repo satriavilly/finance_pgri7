@@ -25,6 +25,12 @@ if (!function_exists('sidebarLink')) {
     <i class="fas fa-file-invoice-dollar w-5 flex-shrink-0"></i>
     <span x-show="sidebarOpen" x-cloak>Kelola Tagihan</span>
 </a>
+
+<a href="{{ route('admin-tu.kategori.index') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('admin-tu.kategori.*') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-tags w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Kategori Tagihan</span>
+</a>
 @endrole
 
 @role('wali_kelas')
@@ -96,5 +102,23 @@ if (!function_exists('sidebarLink')) {
    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('admin.users.*') ? 'bg-blue-700' : '' }}">
     <i class="fas fa-users w-5 flex-shrink-0"></i>
     <span x-show="sidebarOpen" x-cloak>Manajemen User</span>
+</a>
+
+<a href="{{ route('admin.tahun-ajaran.index') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('admin.tahun-ajaran.*') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-calendar-alt w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Tahun Ajaran</span>
+</a>
+
+<a href="{{ route('admin.siswa-import.index') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('admin.siswa-import.*') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-file-import w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Import & Export Siswa</span>
+</a>
+
+<a href="{{ route('admin.wali-kelas.index') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('admin.wali-kelas.*') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-chalkboard-teacher w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Penugasan Wali Kelas</span>
 </a>
 @endrole

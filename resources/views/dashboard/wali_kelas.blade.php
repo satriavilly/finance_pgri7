@@ -5,6 +5,15 @@
 @section('content')
 <div class="space-y-6">
 
+    {{-- Tahun Ajaran --}}
+    <div class="flex items-center justify-between">
+        @include('layouts.partials.tahun-ajaran-select', [
+            'allTahunAjaran' => $allTahunAjaran,
+            'selectedTa'     => $selectedTa,
+            'taRoute'        => 'dashboard',
+        ])
+    </div>
+
     {{-- KPI Cards --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl shadow-sm p-4">
