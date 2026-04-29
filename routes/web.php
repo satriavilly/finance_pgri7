@@ -17,6 +17,7 @@ use App\Http\Controllers\Bendahara\SiswaController as BendaharaSiswaController;
 use App\Http\Controllers\Bendahara\LaporanController as BendaharaLaporanController;
 use App\Http\Controllers\Bendahara\SppController as BendaharaSppController;
 use App\Http\Controllers\Bendahara\BeasiswaController as BendaharaBeasiswaController;
+use App\Http\Controllers\Bendahara\TunggakanController as BendaharaTunggakanController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -90,6 +91,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('spp/{periode}/edit',                [BendaharaSppController::class, 'edit'])->name('spp.edit');
         Route::put('spp/{periode}',                     [BendaharaSppController::class, 'update'])->name('spp.update');
         Route::get('spp/{periode}',                     [BendaharaSppController::class, 'show'])->name('spp.show');
+
+        Route::get('tunggakan',               [BendaharaTunggakanController::class, 'index'])->name('tunggakan.index');
 
         Route::get('beasiswa',                [BendaharaBeasiswaController::class, 'index'])->name('beasiswa.index');
         Route::post('beasiswa',               [BendaharaBeasiswaController::class, 'store'])->name('beasiswa.store');

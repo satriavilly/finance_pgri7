@@ -64,6 +64,12 @@ if (!function_exists('sidebarLink')) {
     <span x-show="sidebarOpen" x-cloak>Laporan Transaksi</span>
 </a>
 
+<a href="{{ route('bendahara.tunggakan.index') }}"
+   class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('bendahara.tunggakan.*') ? 'bg-blue-700' : '' }}">
+    <i class="fas fa-exclamation-triangle w-5 flex-shrink-0"></i>
+    <span x-show="sidebarOpen" x-cloak>Monitoring Tunggakan</span>
+</a>
+
 <a href="{{ route('bendahara.laporan.tagihan') }}"
    class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-700 transition-colors rounded mx-2 {{ request()->routeIs('bendahara.laporan.tagihan') ? 'bg-blue-700' : '' }}">
     <i class="fas fa-file-invoice-dollar w-5 flex-shrink-0"></i>
