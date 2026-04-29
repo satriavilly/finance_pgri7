@@ -27,7 +27,11 @@ class BeasiswaImport implements ToCollection, WithHeadingRow
 
         foreach ($rows as $i => $row) {
             $rowNum = $i + 2;
-            $nis = trim((string) ($row['nis'] ?? ''));
+            $nis          = trim((string) ($row['nis'] ?? ''));
+            $namaBeasiswa = trim((string) ($row['nama_beasiswa'] ?? ''));
+            if ($namaBeasiswa === '') {
+                $namaBeasiswa = 'Beasiswa / Subsidi Penuh';
+            }
 
             if ($nis === '') {
                 continue;
@@ -52,7 +56,7 @@ class BeasiswaImport implements ToCollection, WithHeadingRow
 
             foreach ($tagihans as $tagihan) {
                 try {
-                    $this->pembayaranService->terapkanBeasiswaSiswa($tagihan, $this->userId);
+                    $this->pembayaranService->terapkanBeasiswaSiswa($tagihan, $this->userId, $namaBeasiswa);
                 } catch (\Throwable $e) {
                     $this->errors[] = "Baris {$rowNum}: {$siswa->nama} — {$e->getMessage()}";
                     continue 2;

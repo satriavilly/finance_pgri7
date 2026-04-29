@@ -94,11 +94,12 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('tunggakan',               [BendaharaTunggakanController::class, 'index'])->name('tunggakan.index');
 
-        Route::get('beasiswa',                [BendaharaBeasiswaController::class, 'index'])->name('beasiswa.index');
-        Route::post('beasiswa',               [BendaharaBeasiswaController::class, 'store'])->name('beasiswa.store');
-        Route::get('beasiswa/export',         [BendaharaBeasiswaController::class, 'export'])->name('beasiswa.export');
-        Route::post('beasiswa/import',        [BendaharaBeasiswaController::class, 'import'])->name('beasiswa.import');
-        Route::post('beasiswa/{siswa}/void',  [BendaharaBeasiswaController::class, 'void'])->name('beasiswa.void');
+        Route::get('beasiswa',                 [BendaharaBeasiswaController::class, 'index'])->name('beasiswa.index');
+        Route::post('beasiswa',                [BendaharaBeasiswaController::class, 'store'])->name('beasiswa.store');
+        Route::get('beasiswa/export',          [BendaharaBeasiswaController::class, 'export'])->name('beasiswa.export');
+        Route::get('beasiswa/template',        [BendaharaBeasiswaController::class, 'template'])->name('beasiswa.template');
+        Route::post('beasiswa/import',         [BendaharaBeasiswaController::class, 'import'])->name('beasiswa.import');
+        Route::post('beasiswa/{siswa}/void',   [BendaharaBeasiswaController::class, 'void'])->name('beasiswa.void');
     });
 
     // Ortu

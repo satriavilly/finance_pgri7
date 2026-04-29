@@ -18,29 +18,52 @@ class BeasiswaExport implements FromCollection, WithHeadings, WithTitle, WithSty
     {
         $kelasIds = Kelas::where('tahun_ajaran_id', $this->tahunAjaranId)->pluck('id');
 
-        return Siswa::with(['kelas', 'tagihanSiswa' => fn($q) => $q
-                ->where('nominal_subsidi', '>', 0)
-                ->where('status', '!=', 'void')
-                ->with('jenisTagihan'),
+        $siswaList = Siswa::with([
+                'kelas',
+                'tagihanSiswa' => fn($q) => $q
+                    ->where('nominal_subsidi', '>', 0)
+                    ->where('status', '!=', 'void')
+                    ->with([
+                        'jenisTagihan',
+                        'pembayaran' => fn($p) => $p->where('metode', 'beasiswa')->where('is_void', false),
+                    ]),
             ])
             ->whereIn('kelas_id', $kelasIds)
             ->whereHas('tagihanSiswa', fn($q) => $q->where('nominal_subsidi', '>', 0)->where('status', '!=', 'void'))
             ->orderBy('nama')
-            ->get()
-            ->values()
-            ->map(fn($siswa, $i) => [
-                $i + 1,
-                $siswa->nis,
-                $siswa->nama,
-                $siswa->kelas?->nama ?? '-',
-                $siswa->tagihanSiswa->count(),
-                number_format($siswa->tagihanSiswa->sum('nominal_subsidi'), 0, ',', '.'),
-            ]);
+            ->get();
+
+        $rows = collect();
+        $no   = 1;
+
+        foreach ($siswaList as $siswa) {
+            foreach ($siswa->tagihanSiswa as $t) {
+                $namaBeasiswa = $t->pembayaran->first()?->catatan ?? '-';
+                $pct = $t->nominal_total > 0
+                    ? round($t->nominal_subsidi / $t->nominal_total * 100) . '%'
+                    : '0%';
+
+                $rows->push([
+                    $no++,
+                    $siswa->nis,
+                    $siswa->nama,
+                    $siswa->kelas?->nama ?? '-',
+                    $t->jenisTagihan?->nama ?? '-',
+                    \App\Models\JenisTagihan::kategoriLabel()[$t->jenisTagihan?->kategori ?? ''] ?? '-',
+                    number_format($t->nominal_total, 0, ',', '.'),
+                    number_format($t->nominal_subsidi, 0, ',', '.'),
+                    $pct,
+                    $namaBeasiswa,
+                ]);
+            }
+        }
+
+        return $rows;
     }
 
     public function headings(): array
     {
-        return ['No', 'NIS', 'Nama', 'Kelas', 'Jumlah Tagihan', 'Total Subsidi (Rp)'];
+        return ['No', 'NIS', 'Nama', 'Kelas', 'Tagihan', 'Kategori', 'Nominal (Rp)', 'Subsidi (Rp)', '% Subsidi', 'Nama Beasiswa'];
     }
 
     public function title(): string

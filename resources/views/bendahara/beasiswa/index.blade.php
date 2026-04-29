@@ -2,27 +2,29 @@
 @section('title', 'Kelola Beasiswa / Subsidi')
 @section('page-title', 'Beasiswa & Subsidi Penuh')
 
+@php
+$kategoriLabel = \App\Models\JenisTagihan::kategoriLabel();
+$kategoriWarna = \App\Models\KategoriTagihan::orderBy('urutan')->pluck('warna', 'kode')->toArray();
+@endphp
+
 @section('content')
 <div class="space-y-4">
 
     {{-- Header actions --}}
     <div class="flex flex-wrap items-center justify-between gap-3">
-        <p class="text-sm text-gray-500">Siswa yang mendapat subsidi penuh tercatat <strong>lunas</strong> namun nominalnya <strong>tidak dihitung</strong> sebagai pemasukan kas.</p>
-        <div class="flex gap-2">
-            {{-- Export --}}
+        <p class="text-sm text-gray-500">Siswa yang mendapat beasiswa tercatat <strong>lunas</strong> namun nominalnya <strong>tidak dihitung</strong> sebagai pemasukan kas.</p>
+        <div class="flex flex-wrap gap-2">
             <a href="{{ route('bendahara.beasiswa.export', ['ta' => $selectedTa?->id]) }}"
-               class="flex items-center gap-1.5 px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium">
+               class="flex items-center gap-1.5 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium">
                 <i class="fas fa-file-excel"></i> Export
             </a>
-            {{-- Import trigger --}}
             <button type="button" onclick="document.getElementById('modal-import').classList.remove('hidden')"
-                    class="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
-                <i class="fas fa-file-import"></i> Import Excel
+                    class="flex items-center gap-1.5 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
+                <i class="fas fa-file-import"></i> Import
             </button>
-            {{-- Tambah manual trigger --}}
             <button type="button" onclick="document.getElementById('modal-tambah').classList.remove('hidden')"
-                    class="flex items-center gap-1.5 px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium">
-                <i class="fas fa-plus"></i> Tambah Manual
+                    class="flex items-center gap-1.5 px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium">
+                <i class="fas fa-plus"></i> Tambah
             </button>
         </div>
     </div>
@@ -33,7 +35,6 @@
         <span>{{ session('success') }}</span>
     </div>
     @endif
-
     @if(session('error'))
     <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg px-4 py-3 text-sm flex items-start gap-2">
         <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0"></i>
@@ -45,7 +46,7 @@
     <div class="bg-white rounded-xl shadow-sm p-4">
         <form method="GET" action="{{ route('bendahara.beasiswa.index') }}" class="flex flex-wrap gap-3 items-end">
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Tahun Ajaran</label>
+                <label class="block text-xs text-gray-500 mb-1 font-medium">Tahun Ajaran</label>
                 <select name="ta" onchange="this.form.submit()"
                         class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                     @foreach($allTahunAjaran as $ta)
@@ -56,7 +57,7 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Kelas</label>
+                <label class="block text-xs text-gray-500 mb-1 font-medium">Kelas</label>
                 <select name="kelas_id" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                     <option value="">Semua Kelas</option>
                     @foreach($kelasList as $kelas)
@@ -65,9 +66,9 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Cari</label>
+                <label class="block text-xs text-gray-500 mb-1 font-medium">Cari</label>
                 <input type="text" name="cari" value="{{ request('cari') }}" placeholder="Nama / NIS..."
-                       class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-48">
+                       class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-44">
             </div>
             <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
                 <i class="fas fa-search mr-1"></i> Filter
@@ -87,52 +88,119 @@
         </div>
 
         @if($penerima->isEmpty())
-        <div class="text-center py-12 text-gray-400">
+        <div class="text-center py-14 text-gray-400">
             <i class="fas fa-graduation-cap text-4xl mb-3 block"></i>
             <p class="text-sm">Belum ada siswa penerima beasiswa di tahun ajaran ini.</p>
         </div>
         @else
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
-                    <tr>
-                        <th class="px-4 py-3 text-left">Siswa</th>
-                        <th class="px-4 py-3 text-left">Kelas</th>
-                        <th class="px-4 py-3 text-right">Tagihan Disubsidi</th>
-                        <th class="px-4 py-3 text-right">Total Subsidi</th>
-                        <th class="px-4 py-3 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @foreach($penerima as $siswa)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
-                            <p class="font-medium text-gray-800">{{ $siswa->nama }}</p>
-                            <p class="text-xs text-gray-400">NIS: {{ $siswa->nis }}</p>
-                        </td>
-                        <td class="px-4 py-3 text-gray-600">{{ $siswa->kelas?->nama ?? '-' }}</td>
-                        <td class="px-4 py-3 text-right">
-                            <span class="font-medium text-gray-700">{{ $siswa->tagihanSiswa->count() }} tagihan</span>
-                            <div class="text-xs text-gray-400 mt-0.5">
-                                @foreach($siswa->tagihanSiswa as $t)
-                                <div>{{ $t->jenisTagihan?->nama }}</div>
-                                @endforeach
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 text-right font-semibold text-purple-700">
-                            Rp {{ number_format($siswa->tagihanSiswa->sum('nominal_subsidi'), 0, ',', '.') }}
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <button type="button"
-                                    onclick="konfirmasiVoid({{ $siswa->id }}, '{{ addslashes($siswa->nama) }}', {{ $selectedTa?->id ?? 0 }})"
-                                    class="text-xs text-red-600 hover:text-red-800 px-2 py-1 rounded border border-red-200 hover:border-red-400">
-                                <i class="fas fa-times mr-1"></i>Batalkan
-                            </button>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div class="divide-y divide-gray-100" x-data="{ open: null }">
+            @foreach($penerima as $siswa)
+            @php
+                $totalSubsidi  = $siswa->tagihanSiswa->sum('nominal_subsidi');
+                $totalNominal  = $siswa->tagihanSiswa->sum('nominal_total');
+                $pctRata       = $totalNominal > 0 ? round($totalSubsidi / $totalNominal * 100) : 0;
+                $namaBeasiswas = $siswa->tagihanSiswa
+                    ->map(fn($t) => $t->pembayaran->first()?->catatan)
+                    ->filter()->unique()->values();
+                $idx = $siswa->id;
+            @endphp
+
+            {{-- Row siswa --}}
+            <div>
+                <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 cursor-pointer select-none"
+                     @click="open = open === {{ $idx }} ? null : {{ $idx }}">
+
+                    {{-- Avatar --}}
+                    <div class="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                        <span class="text-purple-700 font-bold text-sm">{{ strtoupper(substr($siswa->nama, 0, 1)) }}</span>
+                    </div>
+
+                    {{-- Identitas --}}
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-gray-800 text-sm truncate">{{ $siswa->nama }}</p>
+                        <p class="text-xs text-gray-400">NIS: {{ $siswa->nis }} · {{ $siswa->kelas?->nama ?? '-' }}</p>
+                    </div>
+
+                    {{-- Nama beasiswa --}}
+                    <div class="hidden md:block text-center flex-shrink-0 max-w-[180px]">
+                        @foreach($namaBeasiswas as $nb)
+                        <span class="inline-block text-xs bg-purple-50 text-purple-700 border border-purple-200 rounded-full px-2 py-0.5 mb-0.5">
+                            {{ $nb }}
+                        </span>
+                        @endforeach
+                    </div>
+
+                    {{-- Persen --}}
+                    <div class="text-center flex-shrink-0 w-16">
+                        <p class="text-sm font-bold {{ $pctRata == 100 ? 'text-purple-600' : 'text-yellow-600' }}">
+                            {{ $pctRata }}%
+                        </p>
+                        <p class="text-[10px] text-gray-400">subsidi</p>
+                    </div>
+
+                    {{-- Total subsidi --}}
+                    <div class="text-right flex-shrink-0">
+                        <p class="text-sm font-bold text-purple-700">Rp {{ number_format($totalSubsidi, 0, ',', '.') }}</p>
+                        <p class="text-[10px] text-gray-400">{{ $siswa->tagihanSiswa->count() }} tagihan</p>
+                    </div>
+
+                    {{-- Batalkan --}}
+                    <button type="button"
+                            @click.stop="konfirmasiVoid({{ $siswa->id }}, '{{ addslashes($siswa->nama) }}', {{ $selectedTa?->id ?? 0 }})"
+                            class="flex-shrink-0 text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded border border-red-200 hover:border-red-400 whitespace-nowrap">
+                        <i class="fas fa-times"></i>
+                    </button>
+
+                    {{-- Chevron --}}
+                    <i class="fas fa-chevron-down text-gray-400 text-xs flex-shrink-0 transition-transform duration-200"
+                       :class="open === {{ $idx }} ? 'rotate-180' : ''"></i>
+                </div>
+
+                {{-- Detail tagihans --}}
+                <div x-show="open === {{ $idx }}" x-cloak class="bg-gray-50 border-t border-gray-100 px-5 py-3">
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="text-gray-400 uppercase tracking-wide">
+                                <th class="text-left pb-2 font-medium">Tagihan</th>
+                                <th class="text-left pb-2 font-medium">Kategori</th>
+                                <th class="text-right pb-2 font-medium">Nominal</th>
+                                <th class="text-right pb-2 font-medium">Subsidi</th>
+                                <th class="text-center pb-2 font-medium">%</th>
+                                <th class="text-left pb-2 font-medium pl-3">Nama Beasiswa</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($siswa->tagihanSiswa as $t)
+                            @php
+                                $pct         = $t->nominal_total > 0 ? round($t->nominal_subsidi / $t->nominal_total * 100) : 0;
+                                $kode        = $t->jenisTagihan?->kategori ?? '';
+                                $warna       = $kategoriWarna[$kode] ?? 'bg-gray-100 text-gray-600';
+                                $namaTagihan = $t->jenisTagihan?->nama ?? '-';
+                                $namaB       = $t->pembayaran->first()?->catatan ?? '-';
+                            @endphp
+                            <tr>
+                                <td class="py-1.5 pr-3 font-medium text-gray-700">{{ $namaTagihan }}</td>
+                                <td class="py-1.5 pr-3">
+                                    <span class="inline-block px-1.5 py-0.5 rounded-full text-[10px] {{ $warna }}">
+                                        {{ $kategoriLabel[$kode] ?? $kode }}
+                                    </span>
+                                </td>
+                                <td class="py-1.5 text-right text-gray-500">Rp {{ number_format($t->nominal_total, 0, ',', '.') }}</td>
+                                <td class="py-1.5 text-right font-semibold text-purple-700">Rp {{ number_format($t->nominal_subsidi, 0, ',', '.') }}</td>
+                                <td class="py-1.5 text-center">
+                                    <span class="inline-block px-2 py-0.5 rounded-full font-semibold
+                                        {{ $pct == 100 ? 'bg-purple-100 text-purple-700' : 'bg-yellow-100 text-yellow-700' }}">
+                                        {{ $pct }}%
+                                    </span>
+                                </td>
+                                <td class="py-1.5 pl-3 text-gray-600 italic">{{ $namaB }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endforeach
         </div>
 
         @if($penerima->hasPages())
@@ -155,10 +223,11 @@
         <form method="POST" action="{{ route('bendahara.beasiswa.store') }}">
             @csrf
             <input type="hidden" name="tahun_ajaran_id" value="{{ $selectedTa?->id }}">
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Siswa</label>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Siswa <span class="text-red-500">*</span></label>
                 @if($siswaBelum->isEmpty())
-                <p class="text-sm text-gray-500 italic">Semua siswa di TA ini sudah lunas atau sudah mendapat beasiswa.</p>
+                <p class="text-sm text-gray-500 italic py-2">Semua siswa sudah lunas atau sudah mendapat beasiswa.</p>
                 @else
                 <select name="siswa_id" required
                         class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
@@ -169,10 +238,19 @@
                 </select>
                 @endif
             </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Beasiswa</label>
+                <input type="text" name="nama_beasiswa" placeholder="Contoh: KIP, Beasiswa Prestasi, Beasiswa Sekolah..."
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <p class="text-xs text-gray-400 mt-1">Kosongkan jika tidak ada nama khusus.</p>
+            </div>
+
             <p class="text-xs text-gray-500 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
                 <i class="fas fa-info-circle text-yellow-500 mr-1"></i>
-                Semua tagihan yang belum lunas dari siswa ini akan dilunasi sebagai beasiswa. Nominal tidak terhitung sebagai pemasukan kas.
+                Semua tagihan belum lunas siswa ini akan dilunasi. Nominal tidak terhitung sebagai pemasukan kas.
             </p>
+
             <div class="flex gap-2 justify-end">
                 <button type="button" onclick="document.getElementById('modal-tambah').classList.add('hidden')"
                         class="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg">Batal</button>
@@ -194,19 +272,36 @@
             <button type="button" onclick="document.getElementById('modal-import').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
         </div>
+
+        {{-- Template download --}}
+        <div class="mb-4 flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg px-3 py-2.5">
+            <div>
+                <p class="text-xs font-medium text-purple-800">Belum punya template?</p>
+                <p class="text-xs text-purple-600">Unduh template Excel yang sudah ada contoh pengisian.</p>
+            </div>
+            <a href="{{ route('bendahara.beasiswa.template') }}"
+               class="flex-shrink-0 ml-3 px-3 py-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-1">
+                <i class="fas fa-download"></i> Template
+            </a>
+        </div>
+
         <form method="POST" action="{{ route('bendahara.beasiswa.import') }}" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="tahun_ajaran_id" value="{{ $selectedTa?->id }}">
-            <div class="mb-4">
+
+            <div class="mb-3">
                 <label class="block text-sm font-medium text-gray-700 mb-1">File Excel <span class="text-gray-400 font-normal text-xs">(XLSX / CSV)</span></label>
                 <input type="file" name="file" required accept=".xlsx,.xls,.csv"
                        class="block w-full text-sm text-gray-700 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
             </div>
-            <div class="mb-4 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 space-y-1">
-                <p class="font-medium text-gray-700">Format kolom yang diperlukan:</p>
-                <p><code class="bg-gray-200 rounded px-1">nis</code> — NIS siswa</p>
-                <p>Baris pertama adalah header. Satu baris = satu siswa. Semua tagihan belum lunas siswa tersebut akan dilunasi.</p>
+
+            <div class="mb-4 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 space-y-0.5">
+                <p class="font-medium text-gray-700 mb-1">Format kolom:</p>
+                <p><code class="bg-gray-200 rounded px-1 text-gray-700">nis</code> — NIS siswa <span class="text-red-500">(wajib)</span></p>
+                <p><code class="bg-gray-200 rounded px-1 text-gray-700">nama_beasiswa</code> — Nama beasiswa <span class="text-gray-400">(opsional)</span></p>
+                <p class="pt-1 text-gray-400">Satu baris = satu siswa. Semua tagihan belum lunas akan dilunasi.</p>
             </div>
+
             <div class="flex gap-2 justify-end">
                 <button type="button" onclick="document.getElementById('modal-import').classList.add('hidden')"
                         class="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg">Batal</button>
@@ -218,19 +313,20 @@
     </div>
 </div>
 
-{{-- Modal Konfirmasi Void (hidden form) --}}
+{{-- Hidden void form --}}
 <form id="form-void" method="POST" action="" class="hidden">
     @csrf
     <input type="hidden" name="tahun_ajaran_id" id="void-ta-id">
     <input type="hidden" name="catatan_void" id="void-catatan">
 </form>
 
+{{-- Modal Konfirmasi Void --}}
 <div id="modal-void" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
         <h3 class="font-semibold text-gray-800 mb-2">Batalkan Beasiswa</h3>
-        <p class="text-sm text-gray-600 mb-3">Batalkan beasiswa untuk <strong id="void-nama"></strong>? Semua pembayaran beasiswa siswa ini di tahun ajaran ini akan di-void.</p>
+        <p class="text-sm text-gray-600 mb-3">Batalkan beasiswa untuk <strong id="void-nama"></strong>? Semua pembayaran beasiswa siswa ini di tahun ajaran ini akan di-void dan tagihan kembali ke status belum lunas.</p>
         <div class="mb-4">
-            <label class="block text-xs text-gray-600 mb-1">Alasan pembatalan <span class="text-red-500">*</span></label>
+            <label class="block text-xs text-gray-600 mb-1 font-medium">Alasan pembatalan <span class="text-red-500">*</span></label>
             <textarea id="void-alasan" rows="2" placeholder="Contoh: Siswa tidak jadi penerima beasiswa"
                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-400 outline-none"></textarea>
         </div>
@@ -257,10 +353,7 @@ function konfirmasiVoid(siswaId, nama, taId) {
 
 function submitVoid() {
     const alasan = document.getElementById('void-alasan').value.trim();
-    if (!alasan) {
-        alert('Alasan pembatalan wajib diisi.');
-        return;
-    }
+    if (!alasan) { alert('Alasan pembatalan wajib diisi.'); return; }
     document.getElementById('void-catatan').value = alasan;
     document.getElementById('form-void').submit();
 }

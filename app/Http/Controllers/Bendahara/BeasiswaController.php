@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Bendahara;
 
 use App\Exports\BeasiswaExport;
+use App\Exports\BeasiswaTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Imports\BeasiswaImport;
 use App\Models\Kelas;
@@ -30,11 +31,17 @@ class BeasiswaController extends Controller
 
         $kelasIds = $selectedTa ? Kelas::where('tahun_ajaran_id', $selectedTa->id)->pluck('id') : collect();
 
-        // Siswa yang sudah dapat beasiswa di TA ini
-        $penerima = Siswa::with(['kelas', 'tagihanSiswa' => fn($q) => $q
-                ->where('nominal_subsidi', '>', 0)
-                ->where('status', '!=', 'void')
-                ->with('jenisTagihan'),
+        $penerima = Siswa::with([
+                'kelas',
+                'tagihanSiswa' => fn($q) => $q
+                    ->where('nominal_subsidi', '>', 0)
+                    ->where('status', '!=', 'void')
+                    ->with([
+                        'jenisTagihan',
+                        'pembayaran' => fn($p) => $p
+                            ->where('metode', 'beasiswa')
+                            ->where('is_void', false),
+                    ]),
             ])
             ->whereIn('kelas_id', $kelasIds)
             ->whereHas('tagihanSiswa', fn($q) => $q->where('nominal_subsidi', '>', 0)->where('status', '!=', 'void'))
@@ -50,10 +57,9 @@ class BeasiswaController extends Controller
             ? Kelas::where('tahun_ajaran_id', $selectedTa->id)->orderBy('tingkat')->orderBy('nama')->get()
             : collect();
 
-        // Siswa yang belum dapat beasiswa (untuk form tambah)
         $siswaBelum = Siswa::with('kelas')
             ->whereIn('kelas_id', $kelasIds)
-            ->whereHas('tagihanSiswa', fn($q) => $q->whereIn('status', ['belum_bayar', 'cicilan'])->where('status', '!=', 'void'))
+            ->whereHas('tagihanSiswa', fn($q) => $q->whereIn('status', ['belum_bayar', 'cicilan']))
             ->whereDoesntHave('tagihanSiswa', fn($q) => $q->where('nominal_subsidi', '>', 0)->where('status', '!=', 'void'))
             ->orderBy('nama')
             ->get();
@@ -66,12 +72,14 @@ class BeasiswaController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'siswa_id'       => ['required', 'exists:siswa,id'],
-            'tahun_ajaran_id'=> ['required', 'exists:tahun_ajaran,id'],
+            'siswa_id'        => ['required', 'exists:siswa,id'],
+            'tahun_ajaran_id' => ['required', 'exists:tahun_ajaran,id'],
+            'nama_beasiswa'   => ['nullable', 'string', 'max:200'],
         ]);
 
         $siswaId       = $request->integer('siswa_id');
         $tahunAjaranId = $request->integer('tahun_ajaran_id');
+        $namaBeasiswa  = trim($request->input('nama_beasiswa', '')) ?: 'Beasiswa / Subsidi Penuh';
 
         $kelasIds = Kelas::where('tahun_ajaran_id', $tahunAjaranId)->pluck('id');
 
@@ -85,7 +93,7 @@ class BeasiswaController extends Controller
         }
 
         foreach ($tagihans as $tagihan) {
-            $this->pembayaranService->terapkanBeasiswaSiswa($tagihan, auth()->id());
+            $this->pembayaranService->terapkanBeasiswaSiswa($tagihan, auth()->id(), $namaBeasiswa);
         }
 
         $siswa = Siswa::find($siswaId);
@@ -121,8 +129,8 @@ class BeasiswaController extends Controller
     public function import(Request $request): RedirectResponse
     {
         $request->validate([
-            'file'           => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:2048'],
-            'tahun_ajaran_id'=> ['required', 'exists:tahun_ajaran,id'],
+            'file'            => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:2048'],
+            'tahun_ajaran_id' => ['required', 'exists:tahun_ajaran,id'],
         ]);
 
         $import = new BeasiswaImport($request->integer('tahun_ajaran_id'), auth()->id(), $this->pembayaranService);
@@ -140,5 +148,10 @@ class BeasiswaController extends Controller
     {
         $tahunAjaranId = $request->filled('ta') ? $request->integer('ta') : (TahunAjaran::aktif()?->id ?? 0);
         return Excel::download(new BeasiswaExport($tahunAjaranId), 'beasiswa.xlsx');
+    }
+
+    public function template(): BinaryFileResponse
+    {
+        return Excel::download(new BeasiswaTemplateExport(), 'template-import-beasiswa.xlsx');
     }
 }

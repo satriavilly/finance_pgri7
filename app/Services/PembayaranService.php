@@ -136,9 +136,9 @@ class PembayaranService
         ]);
     }
 
-    public function terapkanBeasiswaSiswa(TagihanSiswa $tagihan, int $userId): Pembayaran
+    public function terapkanBeasiswaSiswa(TagihanSiswa $tagihan, int $userId, string $namaBeasiswa = 'Beasiswa / Subsidi Penuh'): Pembayaran
     {
-        return DB::transaction(function () use ($tagihan, $userId) {
+        return DB::transaction(function () use ($tagihan, $userId, $namaBeasiswa) {
             $sisa = $tagihan->sisa_tagihan;
 
             $pembayaran = Pembayaran::create([
@@ -149,7 +149,7 @@ class PembayaranService
                 'status_verifikasi'=> 'approved',
                 'verified_by'      => $userId,
                 'verified_at'      => now(),
-                'catatan'          => 'Beasiswa / Subsidi Penuh',
+                'catatan'          => $namaBeasiswa,
                 'created_by'       => $userId,
             ]);
 
