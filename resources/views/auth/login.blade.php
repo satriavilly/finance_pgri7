@@ -146,7 +146,6 @@
                     <span class="bg-gray-100 text-gray-500 text-xs px-2.5 py-1 rounded-lg font-mono">{{ $u }}</span>
                     @endforeach
                 </div>
-                <p class="text-xs text-gray-400 text-center mt-2">Password sama dengan username</p>
             </div>
         </div>
     </div>

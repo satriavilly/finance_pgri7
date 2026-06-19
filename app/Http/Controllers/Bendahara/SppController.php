@@ -72,17 +72,23 @@ class SppController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'tahun'       => ['required', 'integer', 'min:2020', 'max:2099'],
+            'tahun'       => ['required', 'string', 'regex:/^\d{4}\/\d{4}$/'],
             'nominal'     => ['required', 'array'],
             'nominal.*'   => ['required', 'numeric', 'min:1000'],
-            'due_date'    => ['nullable', 'date'],
+            'due_date'    => ['nullable', 'integer', 'min:1', 'max:31'],
             'kelas_ids'   => ['required', 'array', 'min:1'],
             'kelas_ids.*' => ['exists:kelas,id'],
         ], [
+            'tahun.regex'        => 'Format tahun ajaran harus YYYY/YYYY, contoh: 2025/2026.',
+            'due_date.min'       => 'Tanggal jatuh tempo minimal hari ke-1.',
+            'due_date.max'       => 'Tanggal jatuh tempo maksimal hari ke-31.',
             'kelas_ids.required' => 'Pilih minimal satu kelas.',
             'nominal.*.required' => 'Tarif SPP wajib diisi untuk setiap angkatan yang dipilih.',
             'nominal.*.min'      => 'Tarif SPP minimal Rp 1.000.',
         ]);
+
+        $tahunMulai  = (int) explode('/', $request->tahun)[0];
+        $dueTanggal  = $request->filled('due_date') ? (int) $request->due_date : null;
 
         $bulanNama = [
             1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',
@@ -94,7 +100,7 @@ class SppController extends Controller
 
         $jumlahSiswa = 0;
 
-        DB::transaction(function () use ($request, $bulanNama, $kelasMap, &$jumlahSiswa) {
+        DB::transaction(function () use ($request, $bulanNama, $kelasMap, &$jumlahSiswa, $tahunMulai, $dueTanggal) {
             foreach ($request->kelas_ids as $kelasId) {
                 $tingkat = $kelasMap[$kelasId] ?? null;
                 $nominal = $request->input("nominal.$tingkat");
@@ -102,7 +108,7 @@ class SppController extends Controller
                 if (!$nominal) continue;
 
                 for ($bulan = 1; $bulan <= 12; $bulan++) {
-                    $periode = sprintf('%04d-%02d', $request->tahun, $bulan);
+                    $periode = sprintf('%04d-%02d', $tahunMulai, $bulan);
 
                     $exists = JenisTagihan::where('kategori', 'spp')
                         ->where('kelas_id', $kelasId)
@@ -112,6 +118,14 @@ class SppController extends Controller
 
                     if ($exists) continue;
 
+                    // Hitung due_date per bulan: pakai hari yang diminta,
+                    // fallback ke hari terakhir bulan jika bulan tidak punya hari sebanyak itu
+                    $dueDate = null;
+                    if ($dueTanggal) {
+                        $hariTerakhir = \Carbon\Carbon::create($tahunMulai, $bulan, 1)->daysInMonth;
+                        $dueDate = \Carbon\Carbon::create($tahunMulai, $bulan, min($dueTanggal, $hariTerakhir));
+                    }
+
                     $jenisTagihan = JenisTagihan::create([
                         'nama'           => "SPP {$bulanNama[$bulan]} {$request->tahun}",
                         'deskripsi'      => $periode,
@@ -120,7 +134,7 @@ class SppController extends Controller
                         'total_nominal'  => $nominal,
                         'is_cicilan'     => false,
                         'jumlah_cicilan' => 1,
-                        'due_date'       => $request->due_date ?: null,
+                        'due_date'       => $dueDate,
                         'is_aktif'       => true,
                         'created_by'     => auth()->id(),
                     ]);
@@ -134,7 +148,7 @@ class SppController extends Controller
         });
 
         return redirect()->route('bendahara.spp.index')
-            ->with('success', "SPP Tahun {$request->tahun} berhasil dibuat untuk 12 bulan. {$jumlahSiswa} tagihan didistribusikan ke siswa.");
+            ->with('success', "SPP Tahun Ajaran {$request->tahun} berhasil dibuat untuk 12 bulan. {$jumlahSiswa} tagihan didistribusikan ke siswa.");
     }
 
     public function show(string $periode): View

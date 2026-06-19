@@ -21,16 +21,23 @@
                 {{-- Tahun --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Ajaran <span class="text-red-500">*</span></label>
-                    <input type="number" name="tahun" value="{{ old('tahun', now()->year) }}" required
-                           min="2020" max="2099"
+                    <input type="text" name="tahun" value="{{ old('tahun', now()->year.'/'.now()->year+1) }}" required
+                           placeholder="2025/2026" pattern="\d{4}/\d{4}"
                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <p class="text-xs text-gray-400 mt-1">Format: YYYY/YYYY, contoh 2025/2026</p>
                 </div>
 
                 {{-- Jatuh Tempo --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Jatuh Tempo</label>
-                    <input type="date" name="due_date" value="{{ old('due_date') }}"
-                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Jatuh Tempo (per bulan)</label>
+                    <div class="flex items-center gap-2 max-w-xs">
+                        <span class="text-sm text-gray-500">Tgl</span>
+                        <input type="number" name="due_date" value="{{ old('due_date') }}"
+                               min="1" max="31" placeholder="mis. 30"
+                               class="w-24 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <span class="text-sm text-gray-500">setiap bulan</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Kosongkan jika tidak ada batas waktu. Bulan yang hari-nya kurang (mis. Feb) otomatis menyesuaikan.</p>
                 </div>
 
                 {{-- Per Angkatan --}}
